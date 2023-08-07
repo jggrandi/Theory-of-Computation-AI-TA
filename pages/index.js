@@ -1,58 +1,99 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./index.module.css";
 
 export default function Home() {
-  const [animalInput, setAnimalInput] = useState("");
-  const [result, setResult] = useState();
+  const [questionInput, setQuestionInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const loadedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+    setMessages(loadedMessages);
+  }, []);
 
   async function onSubmit(event) {
     event.preventDefault();
+  
+    // Check if the questionInput is empty or only contains whitespace
+    if (!questionInput.trim()) {
+      alert("Please enter a question before submitting.");
+      return; // Exit the function if the input is empty or only contains whitespace
+    }
+  
+    const updatedMessages = [...messages, { role: "user", content: questionInput }];
+    setIsLoading(true); // Start loading
+
     try {
-      const response = await fetch("/api/generate", {
+      const serverResponse = await fetch("/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ animal: animalInput }),
+        body: JSON.stringify({ messages: updatedMessages }),
       });
-
-      const data = await response.json();
-      if (response.status !== 200) {
-        throw data.error || new Error(`Request failed with status ${response.status}`);
+  
+      const data = await serverResponse.json();
+  
+      if (serverResponse.status !== 200) {
+        throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
-
-      setResult(data.result);
-      setAnimalInput("");
+  
+      updatedMessages.push({ role: "assistant", content: data.result });
+      setMessages(updatedMessages);
+  
+      localStorage.setItem('messages', JSON.stringify(updatedMessages));
+  
+      setQuestionInput("");
+      setIsLoading(false); // End loading after success
+  
     } catch(error) {
-      // Consider implementing your own error handling logic here
       console.error(error);
       alert(error.message);
+      setIsLoading(false); // End loading in case of an error
     }
+  }
+  
+
+  function clearChat() {
+    setMessages([]);
+    localStorage.removeItem('messages');
   }
 
   return (
-    <div>
+    <div className={styles.container}>
       <Head>
-        <title>OpenAI Quickstart</title>
-        <link rel="icon" href="/dog.png" />
+        <title>Theory of Computation Assistant</title>
+        <link rel="icon" href="/icon.png" />
       </Head>
 
+      <div className={styles.header}>Theory of Computation Teaching Assistant</div>
+
       <main className={styles.main}>
-        <img src="/dog.png" className={styles.icon} />
-        <h3>Name my pet</h3>
-        <form onSubmit={onSubmit}>
+        <div className={styles.chatWrapper}>
+          <div className={styles.chatContainer}>
+            {messages.map((message, idx) => (
+              <div key={idx} className={message.role === "user" ? styles.userMessage : styles.assistantMessage}>
+                {message.content}
+              </div>
+            ))}
+          </div>
+        </div>
+        {messages.length > 0 && (
+          <button onClick={clearChat} className={styles.clearButton}>Clear Chat</button>
+        )}
+        <form onSubmit={onSubmit} className={styles.inputForm}>
           <input
             type="text"
-            name="animal"
-            placeholder="Enter an animal"
-            value={animalInput}
-            onChange={(e) => setAnimalInput(e.target.value)}
+            name="question"
+            placeholder="Enter your question"
+            value={questionInput}
+            onChange={(e) => setQuestionInput(e.target.value)}
           />
-          <input type="submit" value="Generate names" />
+          <input type="submit" value={isLoading ? "Processing..." : "Ask"} disabled={isLoading} />
         </form>
-        <div className={styles.result}>{result}</div>
-      </main>
+    </main>
+
     </div>
   );
 }

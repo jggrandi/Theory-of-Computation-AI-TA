@@ -6,6 +6,7 @@
   font-weight: normal;
   font-style: normal;
 }
+
 @font-face {
   font-family: "ColfaxAI";
   src: url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff2) format("woff2"),
@@ -13,6 +14,23 @@
   font-weight: bold;
   font-style: normal;
 }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+  padding-bottom: 0;
+  padding-top: 100px; 
+}
+
 .main,
 .main input {
   font-size: 16px;
@@ -20,15 +38,17 @@
   color: #353740;
   font-family: "ColfaxAI", Helvetica, sans-serif;
 }
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 60px;
+
+/* Style for the disabled state of the submit button */
+.main input[type="submit"]:disabled {
+  background-color: #b0b0b0; /* Grayed out */
+  cursor: not-allowed; /* No click cursor */
 }
+
 .main .icon {
   width: 34px;
 }
+
 .main h3 {
   font-size: 32px;
   line-height: 40px;
@@ -36,11 +56,43 @@
   color: #202123;
   margin: 16px 0 40px;
 }
+
+.chatContainer {
+  flex: 1;
+  padding: 24px;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  max-height: calc(100vh - 180px); /* 150px previously, adjust according to the height of inputForm including its padding */
+  margin-bottom: 0; 
+  padding-bottom: 256px;
+}
+
+
+.userMessage, .assistantMessage {
+  max-width: 100%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  margin: 12px 0;
+}
+
+.userMessage {
+  align-self: flex-end;
+  background-color: #e6f7ff;
+  color: #0070f3;
+}
+
+.assistantMessage {
+  background-color: #f3f4f6;
+  color: #353740;
+}
+
 .main form {
   display: flex;
   flex-direction: column;
-  width: 320px;
+
 }
+
 .main input[type="text"] {
   padding: 12px 16px;
   border: 1px solid #10a37f;
@@ -48,10 +100,12 @@
   margin-bottom: 24px;
   outline-color: #10a37f;
 }
+
 .main ::placeholder {
   color: #8e8ea0;
   opacity: 1;
 }
+
 .main input[type="submit"] {
   padding: 12px 0;
   color: #fff;
@@ -61,7 +115,81 @@
   text-align: center;
   cursor: pointer;
 }
+
 .main .result {
   font-weight: bold;
   margin-top: 40px;
 }
+
+
+.inputForm {
+  display: flex;
+  justify-content: center;   
+  padding: 16px 24px;        
+  background-color: #f7f8fa;
+  border-top: 1px solid #eaeaea;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box; /* to include padding in width */
+}
+
+
+.inputForm input[type="text"] {
+  flex: 1;                   /* Allows the input to grow */
+}
+
+.inputForm input[type="submit"] {
+  flex-shrink: 0;            /* Prevents the button from shrinking */
+  padding: 20px 24px;        /* Adjust padding for aesthetics */
+}
+
+.header {
+  background-color: #f7f8fa;      /* Background color for the header */
+  padding: 16px 24px;             /* Padding around the text */
+  border-bottom: 1px solid #eaeaea; /* A light border at the bottom */
+  text-align: center;             /* Centers the text horizontally */
+  font-weight: bold;              /* Makes the text bold */
+  font-size: 24px;                /* Adjust font size */
+  color: #353740;                /* Text color */
+  font-family: "ColfaxAI", Helvetica, sans-serif; /* Ensuring it uses the same font */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; /* this ensures it spans the full width of the viewport */
+  z-index: 1000;
+}
+
+.clearButton {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin: 10px 0;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: background-color 0.3s;
+  position: fixed; /* To fix the position of the button relative to the viewport */
+  bottom: 170px;
+}
+
+.clearButton:hover {
+  background-color: darkred;
+}
+
+.chatWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.loadingIndicator {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
