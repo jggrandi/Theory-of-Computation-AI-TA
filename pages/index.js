@@ -90,7 +90,7 @@ export default function Home() {
             value={questionInput}
             onChange={(e) => setQuestionInput(e.target.value)}
           />
-          <input type="submit" value={isLoading ? "Processing..." : "Ask"} disabled={isLoading} />
+          <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} />
         </form>
     </main>
 
