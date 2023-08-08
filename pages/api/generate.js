@@ -39,7 +39,7 @@ export default async function (req, res) {
           "content": studentQuestion
         },
       ],
-      temperature: 0.3,
+      temperature: 0.15,
       max_tokens: 256,
       top_p: 1,
       frequency_penalty: 0,
