@@ -34,6 +34,7 @@ export default async function (req, res) {
           "role": "system",
           "content": systemPrompt
         },
+        ...studentMessages,
         {
           "role": "user",
           "content": studentQuestion
@@ -44,7 +45,8 @@ export default async function (req, res) {
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
-    });
+   });
+   
 
     res.status(200).json({ result: response.data.choices[0].message.content });
   } catch(error) {
