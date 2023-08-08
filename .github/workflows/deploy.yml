@@ -1,0 +1,35 @@
+name: Deploy Next.js App
+
+on:
+  push:
+    branches:
+      - main   # adjust this if you use a different branch name for production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: SSH and deploy
+      env:
+        DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        HOST: irlab.uncg.edu
+        USER: jggrandi
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$DEPLOY_SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan $HOST >> ~/.ssh/known_hosts
+        
+        # Here's where you SCP the app and handle deployment on the server.
+        scp -r ./ $USER@$HOST:/home/jggrandi/projects/Theory-of-Computation-AI-TA
+        ssh $USER@$HOST <<EOF
+          cd /home/jggrandi/projects/Theory-of-Computation-AI-TA
+          docker build -t nextjs-app .
+          docker stop nextjs-app-container
+          docker rm nextjs-app-container
+          docker run -d --name nextjs-app-container -p 3000:3000 nextjs-app
+        EOF
