@@ -15,6 +15,15 @@
   font-style: normal;
 }
 
+body, h1, h2, h3, p {
+  margin: 0;
+  padding: 0;
+}
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -159,6 +168,7 @@
   left: 0;
   width: 100%; /* this ensures it spans the full width of the viewport */
   z-index: 1000;
+  box-sizing: border-box;
 }
 
 .clearButton {
