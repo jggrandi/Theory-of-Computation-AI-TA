@@ -67,7 +67,7 @@ export default function Home() {
         <link rel="icon" href="/icon.png" />
       </Head>
 
-      <div className={styles.header}>Theory of Computation Teaching Assistant</div>
+      <div className={styles.header}>CSC 452/652/752 - Theory of Computation Teaching Assistant</div>
 
       <main className={styles.main}>
         <div className={styles.chatWrapper}>
