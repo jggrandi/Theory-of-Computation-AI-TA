@@ -27,7 +27,7 @@ jobs:
         ssh-keyscan $HOST >> ~/.ssh/known_hosts
         
         # Here's where you SCP the app and handle deployment on the server.
-        scp -r $GITHUB_WORKSPACE $USER@$HOST:/home/jggrandi/projects/Theory-of-Computation-AI-TA
+        rsync -av --exclude '.git/' ./ $USER@$HOST:/home/jggrandi/projects/Theory-of-Computation-AI-TA
         ssh $USER@$HOST <<EOF
           cd /home/jggrandi/projects/Theory-of-Computation-AI-TA
           docker build -t nextjs-app .
