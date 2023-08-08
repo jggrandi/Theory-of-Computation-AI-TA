@@ -18,6 +18,7 @@ jobs:
     - name: SSH and deploy
       env:
         DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Adding OpenAI API Key here
         HOST: irlab.uncg.edu
         USER: jggrandi
       run: |
@@ -28,10 +29,11 @@ jobs:
         
         # Here's where you SCP the app and handle deployment on the server.
         rsync -av --exclude '.git/' ./ $USER@$HOST:/home/jggrandi/projects/Theory-of-Computation-AI-TA
+        
         ssh $USER@$HOST <<EOF
           cd /home/jggrandi/projects/Theory-of-Computation-AI-TA
           docker build -t nextjs-app .
           docker stop nextjs-app-container
           docker rm nextjs-app-container
-          docker run -d --name nextjs-app-container -p 3000:3000 nextjs-app
+          docker run -d --name nextjs-app-container -p 3000:3000 -e OPENAI_API_KEY=$OPENAI_API_KEY nextjs-app
         EOF
