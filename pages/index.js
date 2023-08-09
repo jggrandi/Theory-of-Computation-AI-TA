@@ -98,58 +98,70 @@ export default function Home() {
   if (loadingAuth) return <div>Loading...</div>;
 
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)</title>
-        <link rel="icon" href="/icon.png" />
-      </Head>
+    <div className={`container-fluid ${styles.container}`}>
+      <div className={`row justify-content-center`}>
+        <div className={`col-md-8`}>
+          <Head>
+            <title>CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)</title>
+            <link rel="icon" href="/icon.png" />
+            <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+          </Head>
 
-      <div className={styles.header}>CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)</div>
-
-      {user ? (
-        <main className={styles.main}>
-          <div className={styles.userInfo}>
-            <img
-              src={user.photoURL || '/default-profile-picture.png'}
-              alt="User Profile"
-              className={styles.profilePicture}
-            />
-            <p>{user.displayName || user.email}</p>
-            <button onClick={signOutUser} className={styles.signOutButton}>Sign Out</button>
+          <div className={`bg-light p-3 text-center fixed-top`}>
+            CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)
           </div>
 
-          <div className={styles.chatWrapper}>
-            <div className={styles.chatContainer}>
-              {messages.map((message, idx) => (
-                <div key={idx} className={message.role === "user" ? styles.userMessage : styles.assistantMessage}>
-                  {message.content}
+
+          {user ? (
+            <main className={`mt-5 ${styles.main}`}>
+              <div className={`d-flex align-items-center mb-3 ${styles.userInfo}`}>
+                <img
+                  src={user.photoURL || '/default-profile-picture.png'}
+                  alt="User Profile"
+                  className={`rounded-circle ${styles.profilePicture}`}
+                />
+                <p className="mr-2">{user.displayName || user.email}</p>
+                <button onClick={signOutUser} className={`btn btn-danger ${styles.signOutButton}`}>Sign Out</button>
+              </div>
+
+              <div className="d-flex flex-column mb-5">
+                <div className={`overflow-auto ${styles.chatContainer}`}>
+                  {messages.map((message, idx) => (
+                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? 'bg-info text-white' : 'bg-light'} ${message.role === "user" ? styles.userMessage : styles.assistantMessage}`}>
+                      {message.content}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              <div className={`d-flex flex-column mb-5`}>
+                {messages.length > 0 && (
+                  <div className="mt-3 mb-3">
+                    <button onClick={clearChat} className={`btn btn-danger ${styles.clearButton}`}>Clear Chat</button>
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={onSubmit} className="d-flex p-3 fixed-bottom bg-light border-top">
+                <input
+                  type="text"
+                  name="question"
+                  placeholder="Enter your question"
+                  value={questionInput}
+                  onChange={(e) => setQuestionInput(e.target.value)}
+                  className="form-control mr-2"
+                />
+                <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} className="btn btn-success" />
+              </form>
+            </main>
+          ) : (
+            <div className="text-center mt-5">
+              <h2>Please sign in to continue</h2>
+              <button onClick={signInWithGoogle} className={`btn btn-primary ${styles.signInButton}`}>Sign in with Google</button>
             </div>
-          </div>
-
-          {messages.length > 0 && (
-            <button onClick={clearChat} className={styles.clearButton}>Clear Chat</button>
           )}
-
-          <form onSubmit={onSubmit} className={styles.inputForm}>
-            <input
-              type="text"
-              name="question"
-              placeholder="Enter your question"
-              value={questionInput}
-              onChange={(e) => setQuestionInput(e.target.value)}
-            />
-            <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} />
-          </form>
-        </main>
-      ) : (
-        <div>
-          <h2>Please sign in to continue</h2>
-          <button onClick={signInWithGoogle} className={styles.signInButton}>Sign in with Google</button>
         </div>
-      )}
+      </div>
     </div>
-);
-
+  );
 }
