@@ -117,6 +117,7 @@ export default function Home() {
             <p>{user.displayName || user.email}</p>
             <button onClick={signOutUser} className={styles.signOutButton}>Sign Out</button>
           </div>
+
           <div className={styles.chatWrapper}>
             <div className={styles.chatContainer}>
               {messages.map((message, idx) => (
@@ -126,12 +127,12 @@ export default function Home() {
               ))}
             </div>
           </div>
+
           {messages.length > 0 && (
             <button onClick={clearChat} className={styles.clearButton}>Clear Chat</button>
           )}
 
           <form onSubmit={onSubmit} className={styles.inputForm}>
-
             <input
               type="text"
               name="question"
@@ -145,9 +146,10 @@ export default function Home() {
       ) : (
         <div>
           <h2>Please sign in to continue</h2>
-          <button onClick={signInWithGoogle}>Sign in with Google</button>
+          <button onClick={signInWithGoogle} className={styles.signInButton}>Sign in with Google</button>
         </div>
       )}
     </div>
-  );
+);
+
 }
