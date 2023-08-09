@@ -57,6 +57,21 @@
   margin: 16px 0 40px;
 }
 
+.userInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #8e8ea0;
+}
+
+.profilePicture {
+  width: 24px; /* Adjusted size */
+  height: 24px; /* Adjusted size */
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+
 .chatContainer {
   flex: 1;
   padding: 24px;

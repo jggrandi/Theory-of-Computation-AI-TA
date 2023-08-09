@@ -18,7 +18,14 @@ jobs:
     - name: SSH and deploy
       env:
         DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Adding OpenAI API Key here
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+        FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+        FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
         HOST: irlab.uncg.edu
         USER: jggrandi
       run: |
@@ -35,5 +42,17 @@ jobs:
           docker build --no-cache -t nextjs-app .
           docker stop nextjs-app-container
           docker rm nextjs-app-container
-          docker run -d --name nextjs-app-container -p 3000:3000 -e OPENAI_API_KEY=$OPENAI_API_KEY nextjs-app
+          docker run -d \
+            --name nextjs-app-container \
+            -p 3000:3000 \
+            -e OPENAI_API_KEY=$OPENAI_API_KEY \
+            -e FIREBASE_API_KEY=$FIREBASE_API_KEY \
+            -e FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN \
+            -e FIREBASE_APP_ID=$FIREBASE_APP_ID \
+            -e FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID \
+            -e FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID \
+            -e FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID \
+            -e FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET \
+            nextjs-app
         EOF
+
