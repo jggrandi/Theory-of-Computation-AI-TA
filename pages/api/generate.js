@@ -91,38 +91,46 @@ export default async function (req, res) {
     await fetchAndCachePrompt();
   }
 
- // Token from client request
- const token = req.headers.authorization?.split(" ")[1];
+  // Token from client request
+  const token = req.headers.authorization?.split(" ")[1];
 
- if (!token) {
-   return res.status(401).json({
-     error: {
-       message: "No token provided",
-     }
-   });
- }
+  if (!token) {
+    return res.status(401).json({
+      error: {
+        message: "No token provided",
+      }
+    });
+  }
 
- const user = await verifyToken(token);
- if (!user) {
-   return res.status(403).json({
-     error: {
-       message: "Invalid or expired token",
-     }
-   });
- }
+  const user = await verifyToken(token);
+  if (!user) {
+    return res.status(403).json({
+      error: {
+        message: "Invalid or expired token",
+      }
+    });
+  }
 
- if (!configuration.apiKey) {
-   return res.status(500).json({
-     error: {
-       message: "OpenAI API key not configured, please follow instructions in README.md",
-     }
-   });
- }
+  if (!configuration.apiKey) {
+    return res.status(500).json({
+      error: {
+        message: "OpenAI API key not configured, please follow instructions in README.md",
+      }
+    });
+  }
 
 
   const studentMessages = req.body.messages || [];
   const studentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
 
+  // Validate the length of the student's message
+  if (studentQuestion.length > 200) {
+    return res.status(400).json({
+      error: {
+        message: "Your message exceeds the 200 character limit.",
+      },
+    });
+  }
   try {
 
     if (!cachedPrompt) {
