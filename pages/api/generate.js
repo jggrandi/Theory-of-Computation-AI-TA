@@ -121,10 +121,12 @@ export default async function (req, res) {
 
 
   const studentMessages = req.body.messages || [];
-  const studentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
+  const lastTenMessages = studentMessages.slice(-10);
+  const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
 
+  console.log(lastTenMessages.length)
   // Validate the length of the student's message
-  if (studentQuestion.length > 200) {
+  if (studentCurrentQuestion.length > 200) {
     return res.status(400).json({
       error: {
         message: "Your message exceeds the 200 character limit.",
@@ -144,11 +146,7 @@ export default async function (req, res) {
           "role": "system",
           "content": cachedPrompt
         },
-        ...studentMessages,
-        {
-          "role": "user",
-          "content": studentQuestion
-        },
+        ...lastTenMessages
       ],
       temperature: 0.15,
       max_tokens: 256,
@@ -164,7 +162,7 @@ export default async function (req, res) {
     const messagesRef = database.ref('messages');
     const newMessageRef = messagesRef.push();  // Creates a new unique id for this set of messages
     await newMessageRef.set({
-      userMessage: studentQuestion,
+      userMessage: studentCurrentQuestion,
       assistantMessage: assistantMessage,
       timestamp: Date.now()
     });
