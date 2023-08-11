@@ -34,7 +34,7 @@ jobs:
         ssh $USER@$HOST <<EOF
           cd /home/jggrandi/projects/Theory-of-Computation-AI-TA
           docker build --no-cache -t nextjs-app .
-          docker stop nextjs-app-container
-          docker rm nextjs-app-container
+          docker stop nextjs-app-container || true
+          docker rm nextjs-app-container || true
           docker run -d --name nextjs-app-container -p 3000:3000 -e OPENAI_API_KEY=$OPENAI_API_KEY -e PROMPT_DECRYPT_KEY=$PROMPT_DECRYPT_KEY nextjs-app
         EOF
