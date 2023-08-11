@@ -19,7 +19,7 @@ Observation:
 ## File upload
 Upload the file to an url. Right now I am using irlab.uncg.edu/resources/
 ```
-cp encrypted_prompt.enc jggrandi@irlab.uncg.edu:/home/jggrandi
+scp encrypted_prompt.enc jggrandi@irlab.uncg.edu:/home/jggrandi
 ```
 
 ssh into the server and move the file to the correct location.
