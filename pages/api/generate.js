@@ -1,32 +1,20 @@
-const admin = require('firebase-admin');
+const {
+  verifyToken,
+  database,
+  createUserProfileIfNotExist,
+  saveUserMessage
+} = require('./common');
 const { Configuration, OpenAIApi } = require("openai");
 const axios = require('axios');
 const crypto = require('crypto');
 
-admin.database.enableLogging(true);
-
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    }),
-    databaseURL: process.env.FIREBASE_DATABASE_URL
-  });
-}
-
-// Initialize a reference to the Firebase Realtime Database
-const database = admin.database();
-
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY
 });
 const openai = new OpenAIApi(configuration);
 
 const ENCRYPTED_PROMPT_URL = "http://irlab.uncg.edu/resources/encrypted_prompt.enc";
-const PROMPT_DECRYPT_KEY = process.env.PROMPT_DECRYPT_KEY; // Ensure this is set in your environment variables
+const PROMPT_DECRYPT_KEY = process.env.PROMPT_DECRYPT_KEY;
 
 async function getDecryptedPrompt() {
   try {
@@ -74,40 +62,8 @@ async function fetchAndCachePrompt() {
 // Fetch and cache the prompt immediately upon server startup
 fetchAndCachePrompt();
 
-const verifyToken = async (token) => {
-  try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    return decodedToken;
-  } catch (error) {
-    console.error("Error verifying token:", error);
-    return null;
-  }
-};
-
-async function createUserProfileIfNotExist(uid, userName) {
-  const userProfileRef = database.ref(`users/${uid}/profile`);
-  const snapshot = await userProfileRef.once('value');
-  if (!snapshot.exists()) {
-    // Create profile for first-time users
-    userProfileRef.set({
-      userName: userName
-    });
-  }
-}
-
-async function saveUserMessage(uid, studentCurrentQuestion, assistantMessage) {
-  const userMessagesRef = database.ref(`users/${uid}/messages`).push();
-  await userMessagesRef.set({
-    userMessage: studentCurrentQuestion,
-    assistantMessage: assistantMessage,
-    timestamp: Date.now()
-  });
-}
-
-
 
 export default async function (req, res) {
-
   // Refresh the cache if the prompt is stale
   if (!cachedPrompt || Date.now() - lastUpdated > CACHE_DURATION_MS) {
     await fetchAndCachePrompt();
@@ -133,7 +89,6 @@ export default async function (req, res) {
     });
   }
 
-  // After verifying the token, get the user's UID and display name
   const uid = user.uid;
   const userName = user.name || "Unknown User";
 
@@ -148,22 +103,20 @@ export default async function (req, res) {
     });
   }
 
-
   const studentMessages = req.body.messages || [];
   const lastTenMessages = studentMessages.slice(-10);
   const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
-  const clientUserInfo = req.body.user;
 
   // Validate the length of the student's message
   if (studentCurrentQuestion.length > 200) {
     return res.status(400).json({
       error: {
         message: "Your message exceeds the 200 character limit.",
-      },
+      }
     });
   }
-  try {
 
+  try {
     if (!cachedPrompt) {
       throw new Error("Cached prompt is not yet available.");
     }
@@ -181,10 +134,9 @@ export default async function (req, res) {
       max_tokens: 256,
       top_p: 1,
       frequency_penalty: 0,
-      presence_penalty: 0,
+      presence_penalty: 0
     });
 
-    // Extract the assistant's response
     const assistantMessage = response.data.choices[0].message.content;
 
     // Save to Firebase Realtime Database
@@ -197,14 +149,14 @@ export default async function (req, res) {
       res.status(error.response.status).json({
         error: {
           message: `OpenAI API error: ${error.response.data.error.message}`,
-        },
+        }
       });
     } else {
       console.error(`Error with OpenAI API request: ${error.message}`);
       res.status(500).json({
         error: {
           message: `Internal server error: ${error.message}`,
-        },
+        }
       });
     }
   }

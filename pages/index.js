@@ -18,16 +18,31 @@ export default function Home() {
       setMessages(loadedMessages);
     }
 
-    const unsubscribe = listenToAuthChanges((authUser) => {
+    const unsubscribe = listenToAuthChanges(async (authUser) => {
       if (isMounted) {
         if (authUser) {
           setUser(authUser);
+          
+          // Register User to database when they log in
+          const firebaseToken = await authUser.getIdToken();
+          await fetch("/api/registerUser", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${firebaseToken}`
+            },
+            body: JSON.stringify({
+              uid: authUser.uid,  
+              userName: authUser.displayName
+            })
+          });
         } else {
           setUser(null);
         }
         setLoadingAuth(false);
       }
     });
+
 
     return () => {
       isMounted = false;
