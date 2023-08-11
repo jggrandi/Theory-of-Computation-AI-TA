@@ -84,6 +84,28 @@ const verifyToken = async (token) => {
   }
 };
 
+async function createUserProfileIfNotExist(uid, userName) {
+  const userProfileRef = database.ref(`users/${uid}/profile`);
+  const snapshot = await userProfileRef.once('value');
+  if (!snapshot.exists()) {
+    // Create profile for first-time users
+    userProfileRef.set({
+      userName: userName
+    });
+  }
+}
+
+async function saveUserMessage(uid, studentCurrentQuestion, assistantMessage) {
+  const userMessagesRef = database.ref(`users/${uid}/messages`).push();
+  await userMessagesRef.set({
+    userMessage: studentCurrentQuestion,
+    assistantMessage: assistantMessage,
+    timestamp: Date.now()
+  });
+}
+
+
+
 export default async function (req, res) {
 
   // Refresh the cache if the prompt is stale
@@ -111,6 +133,13 @@ export default async function (req, res) {
     });
   }
 
+  // After verifying the token, get the user's UID and display name
+  const uid = user.uid;
+  const userName = user.name || "Unknown User";
+
+  // Create a profile if it doesn't exist
+  await createUserProfileIfNotExist(uid, userName);
+
   if (!configuration.apiKey) {
     return res.status(500).json({
       error: {
@@ -123,8 +152,8 @@ export default async function (req, res) {
   const studentMessages = req.body.messages || [];
   const lastTenMessages = studentMessages.slice(-10);
   const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
+  const clientUserInfo = req.body.user;
 
-  console.log(lastTenMessages.length)
   // Validate the length of the student's message
   if (studentCurrentQuestion.length > 200) {
     return res.status(400).json({
@@ -159,13 +188,7 @@ export default async function (req, res) {
     const assistantMessage = response.data.choices[0].message.content;
 
     // Save to Firebase Realtime Database
-    const messagesRef = database.ref('messages');
-    const newMessageRef = messagesRef.push();  // Creates a new unique id for this set of messages
-    await newMessageRef.set({
-      userMessage: studentCurrentQuestion,
-      assistantMessage: assistantMessage,
-      timestamp: Date.now()
-    });
+    await saveUserMessage(uid, studentCurrentQuestion, assistantMessage);
 
     res.status(200).json({ result: response.data.choices[0].message.content });
   } catch (error) {

@@ -66,7 +66,14 @@ export default function Home() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${firebaseToken}` // Attaching the Firebase token here
         },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({
+          messages: updatedMessages,
+          user: {
+            displayName: user.displayName,
+            uid: user.uid,  // this is the unique user id from Firebase
+          }
+        }),
+        
       });
 
       const data = await serverResponse.json();
