@@ -1,8 +1,9 @@
-import * as admin from 'firebase-admin';
-
+const admin = require('firebase-admin');
 const { Configuration, OpenAIApi } = require("openai");
 const axios = require('axios');
 const crypto = require('crypto');
+
+admin.database.enableLogging(true);
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -15,6 +16,9 @@ if (!admin.apps.length) {
     databaseURL: process.env.FIREBASE_DATABASE_URL
   });
 }
+
+// Initialize a reference to the Firebase Realtime Database
+const database = admin.database();
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -43,8 +47,9 @@ async function getDecryptedPrompt() {
 
     let decrypted = decipher.update(encryptedData);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
-    console.log("Decrypted Content:", decrypted.toString());
+
     return JSON.parse(decrypted.toString()).content;
+
   } catch (err) {
     console.error("Error in getDecryptedPrompt:", err);
     throw err;
@@ -68,7 +73,7 @@ async function fetchAndCachePrompt() {
 
 // Fetch and cache the prompt immediately upon server startup
 fetchAndCachePrompt();
-console.log("Initiating fetchAndCachePrompt");
+
 export default async function (req, res) {
 
   // Refresh the cache if the prompt is stale
@@ -111,6 +116,18 @@ export default async function (req, res) {
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
+    });
+
+    // Extract the assistant's response
+    const assistantMessage = response.data.choices[0].message.content;
+
+    // Save to Firebase Realtime Database
+    const messagesRef = database.ref('messages');
+    const newMessageRef = messagesRef.push();  // Creates a new unique id for this set of messages
+    await newMessageRef.set({
+      userMessage: studentQuestion,
+      assistantMessage: assistantMessage,
+      timestamp: Date.now()
     });
 
     res.status(200).json({ result: response.data.choices[0].message.content });
