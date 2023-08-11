@@ -1,6 +1,20 @@
+import * as admin from 'firebase-admin';
+
 const { Configuration, OpenAIApi } = require("openai");
 const axios = require('axios');
 const crypto = require('crypto');
+
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    }),
+    databaseURL: process.env.FIREBASE_DATABASE_URL
+  });
+}
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
