@@ -19,6 +19,7 @@ jobs:
       env:
         DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # Adding OpenAI API Key here
+        PROMPT_DECRYPT_KEY: ${{ secrets.PROMPT_DECRYPT_KEY }}
         HOST: irlab.uncg.edu
         USER: jggrandi
       run: |
@@ -35,5 +36,5 @@ jobs:
           docker build --no-cache -t nextjs-app .
           docker stop nextjs-app-container
           docker rm nextjs-app-container
-          docker run -d --name nextjs-app-container -p 3000:3000 -e OPENAI_API_KEY=$OPENAI_API_KEY nextjs-app
+          docker run -d --name nextjs-app-container -p 3000:3000 -e OPENAI_API_KEY=$OPENAI_API_KEY -e PROMPT_DECRYPT_KEY=$PROMPT_DECRYPT_KEY nextjs-app
         EOF
