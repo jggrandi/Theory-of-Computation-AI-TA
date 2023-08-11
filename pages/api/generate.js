@@ -74,6 +74,16 @@ async function fetchAndCachePrompt() {
 // Fetch and cache the prompt immediately upon server startup
 fetchAndCachePrompt();
 
+const verifyToken = async (token) => {
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    return decodedToken;
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return null;
+  }
+};
+
 export default async function (req, res) {
 
   // Refresh the cache if the prompt is stale
@@ -81,13 +91,34 @@ export default async function (req, res) {
     await fetchAndCachePrompt();
   }
 
-  if (!configuration.apiKey) {
-    return res.status(500).json({
-      error: {
-        message: "OpenAI API key not configured, please follow instructions in README.md",
-      }
-    });
-  }
+ // Token from client request
+ const token = req.headers.authorization?.split(" ")[1];
+
+ if (!token) {
+   return res.status(401).json({
+     error: {
+       message: "No token provided",
+     }
+   });
+ }
+
+ const user = await verifyToken(token);
+ if (!user) {
+   return res.status(403).json({
+     error: {
+       message: "Invalid or expired token",
+     }
+   });
+ }
+
+ if (!configuration.apiKey) {
+   return res.status(500).json({
+     error: {
+       message: "OpenAI API key not configured, please follow instructions in README.md",
+     }
+   });
+ }
+
 
   const studentMessages = req.body.messages || [];
   const studentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
