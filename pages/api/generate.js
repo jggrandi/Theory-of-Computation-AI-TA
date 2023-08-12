@@ -1,48 +1,10 @@
-const { checkAndUpdateUserQuota } = require('./middleware');
-const { verifyToken, database, createUserProfileIfNotExist, saveUserMessage } = require('./common');
-const { Configuration, OpenAIApi } = require("openai");
+const { verifyToken,database, saveUserMessage} = require('./common');
+const { getDecryptedPrompt } = require('./encryptionUtils');
+const { createChatCompletion, configuration } = require('./openaiUtils');
+
 const axios = require('axios');
 const crypto = require('crypto');
 
-if (!process.env.OPENAI_API_KEY || !process.env.PROMPT_DECRYPT_KEY) {
-  throw new Error("Missing essential environment variables. Ensure both OPENAI_API_KEY and PROMPT_DECRYPT_KEY are set.");
-}
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-});
-const openai = new OpenAIApi(configuration);
-
-const ENCRYPTED_PROMPT_URL = "http://irlab.uncg.edu/resources/encrypted_prompt.enc";
-const PROMPT_DECRYPT_KEY = process.env.PROMPT_DECRYPT_KEY;
-
-async function getDecryptedPrompt() {
-  try {
-    const { data } = await axios.get(ENCRYPTED_PROMPT_URL, { responseType: 'arraybuffer' });
-
-    // Extract salt from openssl's output (starts after 'Salted__')
-    const salt = data.slice(8, 16);
-
-    // Derive key and IV separately from passphrase and salt
-    const keyAndIv = crypto.pbkdf2Sync(PROMPT_DECRYPT_KEY, salt, 10000, 48, 'sha256');
-    const key = keyAndIv.subarray(0, 32);
-    const iv = keyAndIv.subarray(32, 48);
-
-    // Extract actual encrypted data
-    const encryptedData = data.slice(16);
-
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-
-    let decrypted = decipher.update(encryptedData);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-    return JSON.parse(decrypted.toString()).content;
-
-  } catch (err) {
-    console.error("Error in getDecryptedPrompt:", err);
-    throw err;
-  }
-}
 
 const CACHE_DURATION_MS = 3600000;  // 1 hour
 
@@ -63,7 +25,6 @@ async function fetchAndCachePrompt() {
 fetchAndCachePrompt();
 
 
-
 export default async function (req, res) {
   // Refresh the cache if the prompt is stale
   if (!cachedPrompt || Date.now() - lastUpdated > CACHE_DURATION_MS) {
@@ -72,32 +33,32 @@ export default async function (req, res) {
 
   // Token from client request
   const token = req.headers.authorization?.split(" ")[1];
+
   if (!token) {
-    return res.status(401).json({ error: { message: "No token provided" } });
+    return res.status(401).json({
+      error: {
+        message: "No token provided",
+      }
+    });
   }
 
   const user = await verifyToken(token);
-  // console.log(user)
   if (!user) {
-    return res.status(403).json({ error: { message: "Invalid or expired token" } });
-  }
-
-  // Check and update user quota
-  try {
-    await checkAndUpdateUserQuota(req, res, () => { });
-  } catch (error) {
-    // Handle errors related to quota check
-    console.error("Error checking quota:", error);
-    return res.status(500).json({ error: { message: "Internal Server Error" } });
-  }
-  console.log(req)
-  // Assume the user sends a message in the request body
-  const userMessage = req.body.message;
-
-  if (!userMessage) {
-    return res.status(400).json({
+    return res.status(403).json({
       error: {
-        message: "No message provided in the request",
+        message: "Invalid or expired token",
+      }
+    });
+  }
+
+  const uid = user.uid;
+  const userName = user.name || "Unknown User";
+
+
+  if (!configuration.apiKey) {
+    return res.status(500).json({
+      error: {
+        message: "OpenAI API key not configured, please follow instructions in README.md",
       }
     });
   }
@@ -115,45 +76,13 @@ export default async function (req, res) {
     });
   }
 
-  // Save user's message to the database
-  const messageId = await saveUserMessage(user.uid, userMessage);
-  if (!messageId) {
-    return res.status(500).json({
-      error: {
-        message: "Failed to save the message. Try again later.",
-      }
-    });
-  }
-
-  // Successfully saved the message, return its ID to the user
-  return res.status(201).json({ messageId });
-
-
   try {
-    if (!cachedPrompt) {
-      throw new Error("Cached prompt is not yet available.");
-    }
 
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          "role": "system",
-          "content": cachedPrompt
-        },
-        ...lastTenMessages
-      ],
-      temperature: 0.15,
-      max_tokens: 256,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0
-    });
-
+    const response = await createChatCompletion(cachedPrompt, studentMessages);
     const assistantMessage = response.data.choices[0].message.content;
 
     // Save to Firebase Realtime Database
-    await saveUserMessage(user.uid, studentCurrentQuestion, assistantMessage);
+    await saveUserMessage(uid, studentCurrentQuestion, assistantMessage);
 
     res.status(200).json({ result: response.data.choices[0].message.content });
   } catch (error) {
