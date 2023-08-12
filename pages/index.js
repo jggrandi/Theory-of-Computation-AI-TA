@@ -22,7 +22,7 @@ export default function Home() {
       if (isMounted) {
         if (authUser) {
           setUser(authUser);
-          
+
           // Register User to database when they log in
           const firebaseToken = await authUser.getIdToken();
           await fetch("/api/registerUser", {
@@ -32,7 +32,7 @@ export default function Home() {
               "Authorization": `Bearer ${firebaseToken}`
             },
             body: JSON.stringify({
-              uid: authUser.uid,  
+              uid: authUser.uid,
               userName: authUser.displayName
             })
           });
@@ -66,28 +66,28 @@ export default function Home() {
     }
 
     const firebaseToken = await getFirebaseToken();
-  // Quota and cooldown checks
-  
-  const response = await fetch(`/api/messagesTimestamps?uid=${user.uid}`);
-  if (!response.ok) {
-    console.error('Error fetching last 10 message timestamps:', response.statusText);
-    return;  // Exit the function or handle the error as needed
-  }
-  const data = await response.json();
-  const messageTimestamps = data.timestamps;
+    // Quota and cooldown checks
 
-  if (messageTimestamps.length >= 10) {
-    const oldestMessageTime = messageTimestamps[0];
-    const currentTime = Date.now();
-    const timeDifference = currentTime - oldestMessageTime;
-    const cooldown = 10 * 60 * 1000; // 10 minutes in milliseconds
-
-    if (timeDifference < cooldown) {
-      const timeRemaining = Math.ceil((cooldown - timeDifference) / (60 * 1000)); // Convert milliseconds to minutes
-      alert(`You have reached your message quota. Please wait ${timeRemaining} minutes before sending another message.`);
-      return;
+    const response = await fetch(`/api/messagesTimestamps?uid=${user.uid}`);
+    if (!response.ok) {
+      console.error('Error fetching last 10 message timestamps:', response.statusText);
+      return;  // Exit the function or handle the error as needed
     }
-  }
+    const data = await response.json();
+    const messageTimestamps = data.timestamps;
+
+    if (messageTimestamps.length >= 10) {
+      const oldestMessageTime = messageTimestamps[0];
+      const currentTime = Date.now();
+      const timeDifference = currentTime - oldestMessageTime;
+      const cooldown = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+      if (timeDifference < cooldown) {
+        const timeRemaining = Math.ceil((cooldown - timeDifference) / (60 * 1000)); // Convert milliseconds to minutes
+        alert(`You have reached your message quota. Please wait ${timeRemaining} minutes before sending another message.`);
+        return;
+      }
+    }
 
     if (!firebaseToken) {
       alert("Authentication token not found. Please sign in again.");
@@ -112,7 +112,7 @@ export default function Home() {
             uid: user.uid,  // this is the unique user id from Firebase
           }
         }),
-        
+
       });
 
       const data = await serverResponse.json();
@@ -157,7 +157,6 @@ export default function Home() {
             CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)
           </div>
 
-
           {user ? (
             <main className={`mt-5 ${styles.main}`}>
               <div className={`d-flex align-items-center mb-3 ${styles.userInfo}`}>
@@ -180,12 +179,8 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className={`d-flex flex-column mb-5`}>
-                {messages.length > 0 && (
-                  <div className="mt-3 mb-3">
-                    <button onClick={clearChat} className={`btn btn-danger ${styles.clearButton}`}>Clear Chat</button>
-                  </div>
-                )}
+              <div className={`d-flex justify-content-center ${styles.clearButtonContainer}`}>
+                <button onClick={clearChat} className={`btn btn-danger ${styles.clearButton}`}>Clear Chat</button>
               </div>
 
               <form onSubmit={onSubmit} className="d-flex p-3 fixed-bottom bg-light border-top">
@@ -210,4 +205,5 @@ export default function Home() {
       </div>
     </div>
   );
-}
+
+} 

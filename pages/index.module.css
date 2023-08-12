@@ -1,0 +1,8 @@
+.clearButtonContainer {
+    position: fixed;
+    bottom: 80px; /* This value might need to be adjusted based on the height of your text input form and any desired spacing. */
+    left: 50%;
+    transform: translateX(-50%); /* Center the button horizontally */
+    z-index: 10; /* Ensure it appears above other content */
+  }
+  
