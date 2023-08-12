@@ -53,6 +53,17 @@ const registerUserToDatabase = async (uid, userName) => {
   await createUserProfileIfNotExist(uid, userName);
 };
 
+const getLast10MessageTimestamps = async (uid) => {
+  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(10);
+  const snapshot = await userMessagesRef.once('value');
+  
+  // Extract the timestamps from the snapshot and return them in ascending order
+  const timestamps = [];
+  snapshot.forEach(childSnapshot => {
+    timestamps.push(childSnapshot.val().timestamp);
+  });
+  return timestamps.sort((a, b) => a - b);
+};
 
 
 module.exports = {
@@ -60,4 +71,5 @@ module.exports = {
   createUserProfileIfNotExist,
   saveUserMessage,
   registerUserToDatabase,
+  getLast10MessageTimestamps,
 };
