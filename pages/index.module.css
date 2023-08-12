@@ -5,3 +5,17 @@
     transform: translateX(-50%); /* Center the button horizontally */
     z-index: 10; /* Ensure it appears above other content */
   }
+
+
+.userInfoSection {
+    display: flex; /* Using flexbox to align items horizontally */
+    align-items: center; /* Center items vertically */
+    gap: 15px; /* Spacing between each item */
+  }
+  
+
+.profilePicture {
+    width: 40px;   /* Adjust this value as needed */
+    height: 40px;  /* Adjust this value as needed */
+    object-fit: cover; /* To ensure the image covers the whole area without distortion */
+}

@@ -144,33 +144,55 @@ export default function Home() {
   if (loadingAuth) return <div>Loading...</div>;
 
   return (
-    <div className={`container-fluid ${styles.container}`}>
+    <div className={`container-fluid`}>
       <div className={`row justify-content-center`}>
-        <div className={`col-md-8`}>
+        <div className={`col-md-12`}>
           <Head>
             <title>CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)</title>
             <link rel="icon" href="/icon.png" />
             <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
           </Head>
 
-          <div className={`bg-light p-3 text-center fixed-top`}>
-            <h3> CSC 452/652/752 - Theory of Computation Teaching Assistant (beta) </h3>
+          <div className={`bg-light p-3 sticky-top`}>
+            <div className="container-fluid">
+              <div className="row align-items-center">
+
+                <div className="col-md-2">
+                  {/* Possibly some content here or just leave it empty */}
+                </div>
+
+                <div className="col-md-8 text-center">
+                  <h3> CSC 452/652/752 - Theory of Computation Teaching Assistant (beta) </h3>
+                </div>
+
+                <div className="col-md-2 align-items-center"> {/* Right block */}
+                  {user ? (
+                    <div className={`d-flex align-items-center justify-content-center  ${styles.userInfoSection}`}>
+                      <img
+                        src={user.photoURL || '/default-profile-picture.png'}
+                        alt="User Profile"
+                        className={`rounded-circle ${styles.profilePicture}`}
+                      />
+                      <button onClick={signOutUser} className={`btn btn-danger`}>Sign Out</button>
+                    </div>
+                  ) : (
+                    <div className="d-flex align-items-center justify-content-center">
+                      <button onClick={signInWithGoogle} className={`btn btn-primary`}>Sign in with Google</button>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
           </div>
 
+
+
           {user ? (
-            <main className={`mt-5 ${styles.main}`}>
-              <div className={`d-flex align-items-center mb-3 ${styles.userInfo}`}>
-                <img
-                  src={user.photoURL || '/default-profile-picture.png'}
-                  alt="User Profile"
-                  className={`rounded-circle ${styles.profilePicture}`}
-                />
-                <p className="mr-2">{user.displayName || user.email}</p>
-                <button onClick={signOutUser} className={`btn btn-danger ${styles.signOutButton}`}>Sign Out</button>
-              </div>
+            <main>
 
               <div className="d-flex flex-column pb-5 mb-5">
-                <div className={`overflow-auto ${styles.chatContainer}`}>
+                <div className={`overflow-auto`}>
                   {messages.map((message, idx) => (
                     <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? 'bg-info text-white' : 'bg-light'} ${message.role === "user" ? styles.userMessage : styles.assistantMessage}`}>
                       {message.content}
@@ -180,7 +202,7 @@ export default function Home() {
               </div>
 
               <div className={`d-flex justify-content-center ${styles.clearButtonContainer}`}>
-                <button onClick={clearChat} className={`btn btn-danger ${styles.clearButton}`}>Clear Chat</button>
+                <button onClick={clearChat} className={`btn btn-danger`}>Clear Chat</button>
               </div>
 
               <form onSubmit={onSubmit} className="d-flex p-3 fixed-bottom bg-light border-top">
@@ -197,8 +219,6 @@ export default function Home() {
             </main>
           ) : (
             <div className="text-center mt-5">
-              <h2>Please sign in to continue</h2>
-              <button onClick={signInWithGoogle} className={`btn btn-primary ${styles.signInButton}`}>Sign in with Google</button>
             </div>
           )}
         </div>
