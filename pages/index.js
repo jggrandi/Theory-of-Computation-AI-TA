@@ -82,6 +82,7 @@ export default function Home() {
           "Authorization": `Bearer ${firebaseToken}` // Attaching the Firebase token here
         },
         body: JSON.stringify({
+          message: questionInput,
           messages: updatedMessages,
           user: {
             displayName: user.displayName,

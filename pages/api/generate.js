@@ -1,12 +1,12 @@
-const {
-  verifyToken,
-  database,
-  createUserProfileIfNotExist,
-  saveUserMessage
-} = require('./common');
+const { checkAndUpdateUserQuota } = require('./middleware');
+const { verifyToken, database, createUserProfileIfNotExist, saveUserMessage } = require('./common');
 const { Configuration, OpenAIApi } = require("openai");
 const axios = require('axios');
 const crypto = require('crypto');
+
+if (!process.env.OPENAI_API_KEY || !process.env.PROMPT_DECRYPT_KEY) {
+  throw new Error("Missing essential environment variables. Ensure both OPENAI_API_KEY and PROMPT_DECRYPT_KEY are set.");
+}
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY
@@ -63,6 +63,7 @@ async function fetchAndCachePrompt() {
 fetchAndCachePrompt();
 
 
+
 export default async function (req, res) {
   // Refresh the cache if the prompt is stale
   if (!cachedPrompt || Date.now() - lastUpdated > CACHE_DURATION_MS) {
@@ -71,34 +72,32 @@ export default async function (req, res) {
 
   // Token from client request
   const token = req.headers.authorization?.split(" ")[1];
-
   if (!token) {
-    return res.status(401).json({
-      error: {
-        message: "No token provided",
-      }
-    });
+    return res.status(401).json({ error: { message: "No token provided" } });
   }
 
   const user = await verifyToken(token);
+  // console.log(user)
   if (!user) {
-    return res.status(403).json({
-      error: {
-        message: "Invalid or expired token",
-      }
-    });
+    return res.status(403).json({ error: { message: "Invalid or expired token" } });
   }
 
-  const uid = user.uid;
-  const userName = user.name || "Unknown User";
+  // Check and update user quota
+  try {
+    await checkAndUpdateUserQuota(req, res, () => { });
+  } catch (error) {
+    // Handle errors related to quota check
+    console.error("Error checking quota:", error);
+    return res.status(500).json({ error: { message: "Internal Server Error" } });
+  }
+  console.log(req)
+  // Assume the user sends a message in the request body
+  const userMessage = req.body.message;
 
-  // Create a profile if it doesn't exist
-  await createUserProfileIfNotExist(uid, userName);
-
-  if (!configuration.apiKey) {
-    return res.status(500).json({
+  if (!userMessage) {
+    return res.status(400).json({
       error: {
-        message: "OpenAI API key not configured, please follow instructions in README.md",
+        message: "No message provided in the request",
       }
     });
   }
@@ -115,6 +114,20 @@ export default async function (req, res) {
       }
     });
   }
+
+  // Save user's message to the database
+  const messageId = await saveUserMessage(user.uid, userMessage);
+  if (!messageId) {
+    return res.status(500).json({
+      error: {
+        message: "Failed to save the message. Try again later.",
+      }
+    });
+  }
+
+  // Successfully saved the message, return its ID to the user
+  return res.status(201).json({ messageId });
+
 
   try {
     if (!cachedPrompt) {
@@ -140,7 +153,7 @@ export default async function (req, res) {
     const assistantMessage = response.data.choices[0].message.content;
 
     // Save to Firebase Realtime Database
-    await saveUserMessage(uid, studentCurrentQuestion, assistantMessage);
+    await saveUserMessage(user.uid, studentCurrentQuestion, assistantMessage);
 
     res.status(200).json({ result: response.data.choices[0].message.content });
   } catch (error) {

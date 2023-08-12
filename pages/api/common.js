@@ -53,9 +53,27 @@ const registerUserToDatabase = async (uid, userName) => {
   await createUserProfileIfNotExist(uid, userName);
 };
 
+const getUserQuota = async (uid) => {
+    const userQuotaRef = database.ref(`users/${uid}/quota`);
+    const snapshot = await userQuotaRef.once('value');
+    
+    // If the quota doesn't exist for the user, it's 0 by default.
+    return snapshot.val() || 0;
+  };
+  
+  const incrementUserQuota = async (uid) => {
+    const currentQuota = await getUserQuota(uid);
+    const userQuotaRef = database.ref(`users/${uid}/quota`);
+    
+    // Increment the current quota by 1
+    await userQuotaRef.set(currentQuota + 1);
+  };
+
 module.exports = {
   verifyToken,
   createUserProfileIfNotExist,
   saveUserMessage,
   registerUserToDatabase,
+  getUserQuota,
+  incrementUserQuota,
 };
