@@ -154,7 +154,7 @@ export default function Home() {
           </Head>
 
           <div className={`bg-light p-3 text-center fixed-top`}>
-            CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)
+            <h3> CSC 452/652/752 - Theory of Computation Teaching Assistant (beta) </h3>
           </div>
 
           {user ? (
@@ -169,7 +169,7 @@ export default function Home() {
                 <button onClick={signOutUser} className={`btn btn-danger ${styles.signOutButton}`}>Sign Out</button>
               </div>
 
-              <div className="d-flex flex-column mb-5">
+              <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto ${styles.chatContainer}`}>
                   {messages.map((message, idx) => (
                     <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? 'bg-info text-white' : 'bg-light'} ${message.role === "user" ? styles.userMessage : styles.assistantMessage}`}>
