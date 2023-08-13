@@ -1,3 +1,26 @@
+@font-face {
+    font-family: "ColfaxAI";
+    src: url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff2)
+        format("woff2"),
+      url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff) format("woff");
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: "ColfaxAI";
+    src: url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff2) format("woff2"),
+      url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff) format("woff");
+    font-weight: bold;
+    font-style: normal;
+  }
+
+.header h1{
+    font-family: "ColfaxAI", Helvetica, sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+}
+
 .clearButtonContainer {
     position: fixed;
     bottom: 80px; /* This value might need to be adjusted based on the height of your text input form and any desired spacing. */
@@ -18,4 +41,9 @@
     width: 40px;   /* Adjust this value as needed */
     height: 40px;  /* Adjust this value as needed */
     object-fit: cover; /* To ensure the image covers the whole area without distortion */
+}
+
+.userMessage{
+    background-color: #e6f7ff;
+    color: #0070f3;
 }

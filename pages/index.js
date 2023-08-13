@@ -159,8 +159,8 @@ export default function Home() {
               {/* Possibly some content here or just leave it empty */}
             </div>
 
-            <div className="col-md-8 text-center">
-              <h3> CSC 452/652/752 - Theory of Computation Teaching Assistant (beta) </h3>
+            <div className={`col-md-8 text-center ${styles.header}`}>
+              <h1> CSC 452/652/752 - Theory of Computation Teaching Assistant</h1>
             </div>
 
             <div className="col-md-2 align-items-center"> {/* Right block */}
@@ -181,14 +181,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className={`col-md-12`}>
+        <div className={`col-md-10`}>
           {user ? (
             <main>
 
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
                   {messages.map((message, idx) => (
-                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? 'bg-info text-white' : 'bg-light'} ${message.role === "user" ? styles.userMessage : styles.assistantMessage}`}>
+                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : 'bg-light'}`}>
                       {message.content}
                     </div>
                   ))}
@@ -218,6 +218,7 @@ export default function Home() {
             </main>
           ) : (
             <div className="text-center mt-5">
+              Disclaimer
             </div>
           )}
         </div>
