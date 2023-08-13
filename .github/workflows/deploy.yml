@@ -12,6 +12,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
       with:
         node-version: '16'
 
@@ -19,15 +22,17 @@ jobs:
       env:
         DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-        FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-        FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-        FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
-        FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
         FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+        FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+        FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+        NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
         PROMPT_DECRYPT_KEY: ${{ secrets.PROMPT_DECRYPT_KEY }}
-
         HOST: irlab.uncg.edu
         USER: jggrandi
       run: |
@@ -36,7 +41,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan $HOST >> ~/.ssh/known_hosts
         
-        # Here's where you SCP the app and handle deployment on the server.
+        # send the app and handle deployment on the server
         rsync -av --exclude '.git/' ./ $USER@$HOST:/home/jggrandi/projects/Theory-of-Computation-AI-TA
         
         ssh $USER@$HOST <<EOF
@@ -48,15 +53,16 @@ jobs:
             --name nextjs-app-container \
             -p 3000:3000 \
             -e OPENAI_API_KEY=$OPENAI_API_KEY \
-            -e FIREBASE_API_KEY=$FIREBASE_API_KEY \
-            -e FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN \
-            -e FIREBASE_APP_ID=$FIREBASE_APP_ID \
-            -e FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID \
-            -e FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID \
             -e FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID \
-            -e FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET \
-            -e PROMPT_DECRYPT_KEY=$PROMPT_DECRYPT_KEY
+            -e FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL \
+            -e FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY \
+            -e FIREBASE_DATABASE_URL=$FIREBASE_DATABASE_URL \
+            -e NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY \
+            -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
+            -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET \
+            -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID \
+            -e NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID \
+            -e NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=$NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID \
+            -e PROMPT_DECRYPT_KEY=$PROMPT_DECRYPT_KEY \
             nextjs-app
         EOF
-
-
