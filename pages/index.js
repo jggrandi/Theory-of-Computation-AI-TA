@@ -1,14 +1,26 @@
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./index.module.css";
 import { signInWithGoogle, listenToAuthChanges, signOutUser } from '../firebase/firebase';
 
 export default function Home() {
+  const messagesEndRef = useRef(null);
   const [questionInput, setQuestionInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+
+  const scrollToBottom = () => {
+    console.log(messagesEndRef.current)
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     let isMounted = true;
@@ -36,6 +48,7 @@ export default function Home() {
               userName: authUser.displayName
             })
           });
+          scrollToBottom();
         } else {
           setUser(null);
         }
@@ -192,6 +205,7 @@ export default function Home() {
                       {message.content}
                     </div>
                   ))}
+                  <div ref={messagesEndRef} /> 
                 </div>
               </div>
 

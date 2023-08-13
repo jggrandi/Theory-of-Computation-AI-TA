@@ -12,8 +12,6 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
 
     const lastTenMessagesExcludingLast = studentMessages.slice(studentMessages.length - 11, studentMessages.length - 1);
     const lastMessage = studentMessages.slice(-1)
-    console.log(lastMessage)
-
     const response = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: [
