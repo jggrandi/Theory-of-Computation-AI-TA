@@ -144,50 +144,44 @@ export default function Home() {
   if (loadingAuth) return <div>Loading...</div>;
 
   return (
+
     <div className={`container-fluid`}>
+      <Head>
+        <title>CSC 452/652/752 - Theory of Computation Teaching Assistant</title>
+        <link rel="icon" href="/icon.png" />
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+      </Head>
       <div className={`row justify-content-center`}>
-        <div className={`col-md-12`}>
-          <Head>
-            <title>CSC 452/652/752 - Theory of Computation Teaching Assistant (beta)</title>
-            <link rel="icon" href="/icon.png" />
-            <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
-          </Head>
+        <div className={`bg-light p-3 sticky-top container-fluid`}>
+          <div className="row align-items-center">
 
-          <div className={`bg-light p-3 sticky-top`}>
-            <div className="container-fluid">
-              <div className="row align-items-center">
+            <div className="col-md-2">
+              {/* Possibly some content here or just leave it empty */}
+            </div>
 
-                <div className="col-md-2">
-                  {/* Possibly some content here or just leave it empty */}
+            <div className="col-md-8 text-center">
+              <h3> CSC 452/652/752 - Theory of Computation Teaching Assistant (beta) </h3>
+            </div>
+
+            <div className="col-md-2 align-items-center"> {/* Right block */}
+              {user ? (
+                <div className={`d-flex align-items-center justify-content-center  ${styles.userInfoSection}`}>
+                  <img
+                    src={user.photoURL || '/default-profile-picture.png'}
+                    alt="User Profile"
+                    className={`rounded-circle ${styles.profilePicture}`}
+                  />
+                  <button onClick={signOutUser} className={`btn btn-danger`}>Sign Out</button>
                 </div>
-
-                <div className="col-md-8 text-center">
-                  <h3> CSC 452/652/752 - Theory of Computation Teaching Assistant (beta) </h3>
+              ) : (
+                <div className="d-flex align-items-center justify-content-center">
+                  <button onClick={signInWithGoogle} className={`btn btn-primary`}>Sign in with Google</button>
                 </div>
-
-                <div className="col-md-2 align-items-center"> {/* Right block */}
-                  {user ? (
-                    <div className={`d-flex align-items-center justify-content-center  ${styles.userInfoSection}`}>
-                      <img
-                        src={user.photoURL || '/default-profile-picture.png'}
-                        alt="User Profile"
-                        className={`rounded-circle ${styles.profilePicture}`}
-                      />
-                      <button onClick={signOutUser} className={`btn btn-danger`}>Sign Out</button>
-                    </div>
-                  ) : (
-                    <div className="d-flex align-items-center justify-content-center">
-                      <button onClick={signInWithGoogle} className={`btn btn-primary`}>Sign in with Google</button>
-                    </div>
-                  )}
-                </div>
-
-              </div>
+              )}
             </div>
           </div>
-
-
-
+        </div>
+        <div className={`col-md-12`}>
           {user ? (
             <main>
 
@@ -204,18 +198,23 @@ export default function Home() {
               <div className={`d-flex justify-content-center ${styles.clearButtonContainer}`}>
                 <button onClick={clearChat} className={`btn btn-danger`}>Clear Chat</button>
               </div>
-
-              <form onSubmit={onSubmit} className="d-flex p-3 fixed-bottom bg-light border-top">
-                <input
-                  type="text"
-                  name="question"
-                  placeholder="Enter your question"
-                  value={questionInput}
-                  onChange={(e) => setQuestionInput(e.target.value)}
-                  className="form-control mr-2"
-                />
-                <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} className="btn btn-success" />
-              </form>
+              <div className={`fixed-bottom bg-light border-top row align-items-center p-3`}>
+                <div className={`col-md-1`}></div>
+                <div className={`col-md-10`}>
+                  <form onSubmit={onSubmit} className={`d-flex`}>
+                    <input
+                      type="text"
+                      name="question"
+                      placeholder="Enter your question"
+                      value={questionInput}
+                      onChange={(e) => setQuestionInput(e.target.value)}
+                      className="form-control mr-2"
+                    />
+                    <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} className="btn btn-success" />
+                  </form>
+                </div>
+                <div className={`col-md-1`}></div>
+              </div>
             </main>
           ) : (
             <div className="text-center mt-5">
