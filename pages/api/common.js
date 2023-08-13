@@ -29,13 +29,14 @@ const verifyToken = async (token) => {
   }
 };
 
-const createUserProfileIfNotExist = async (uid, userName) => {
+const createUserProfileIfNotExist = async (uid, userName, userEmail) => {
   const userProfileRef = database.ref(`users/${uid}/profile`);
   const snapshot = await userProfileRef.once('value');
   if (!snapshot.exists()) {
     // Create profile for first-time users
     userProfileRef.set({
-      userName: userName
+      userName: userName,
+      userEmail: userEmail
     });
   }
 };
@@ -49,8 +50,8 @@ const saveUserMessage = async (uid, studentCurrentQuestion, assistantMessage) =>
   });
 };
 
-const registerUserToDatabase = async (uid, userName) => {
-  await createUserProfileIfNotExist(uid, userName);
+const registerUserToDatabase = async (uid, userName, userEmail) => {
+  await createUserProfileIfNotExist(uid, userName, userEmail);
 };
 
 const getLast10MessageTimestamps = async (uid) => {

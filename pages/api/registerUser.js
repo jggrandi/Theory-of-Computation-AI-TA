@@ -27,9 +27,10 @@ export default async function registerUser(req, res) {
 
     const uid = user.uid;
     const userName = user.name || "Unknown User";
+    const userEmail = user.email
 
     try {
-        await registerUserToDatabase(uid, userName);
+        await registerUserToDatabase(uid, userName, userEmail);
         res.status(200).json({ success: true });
     } catch (error) {
         console.error("Error registering user:", error);

@@ -12,7 +12,6 @@ export default function Home() {
   const [loadingAuth, setLoadingAuth] = useState(true);
 
   const scrollToBottom = () => {
-    console.log(messagesEndRef.current)
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -205,13 +204,14 @@ export default function Home() {
                       {message.content}
                     </div>
                   ))}
-                  <div ref={messagesEndRef} /> 
+                  <div ref={messagesEndRef} />
                 </div>
               </div>
-
-              <div className={`d-flex justify-content-center ${styles.clearButtonContainer}`}>
-                <button onClick={clearChat} className={`btn btn-danger`}>Clear Chat</button>
-              </div>
+              {messages.length > 0 && (
+                <div className={`d-flex justify-content-center ${styles.clearButtonContainer}`}>
+                  <button onClick={clearChat} className={`btn btn-danger`}>Clear Chat</button>
+                </div>
+              )}
               <div className={`fixed-bottom bg-light border-top row align-items-center p-3`}>
                 <div className={`col-md-1`}></div>
                 <div className={`col-md-10`}>
