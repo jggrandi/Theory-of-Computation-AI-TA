@@ -47,3 +47,19 @@
     background-color: #e6f7ff;
     color: #0070f3;
 }
+
+.loginPageImage {
+    width: auto; 
+    height: 150px;  /* Adjust this value based on your preference */
+    margin-bottom: 20px;  /* Space between the image and the disclaimer */
+}
+
+.disclaimer {
+    background-color: #f2f2f2; /* Light grey background */
+    border: 1px solid #e0e0e0; /* Border for the disclaimer */
+    padding: 15px;             /* Padding around the text */
+    margin: 10px 0;            /* Margin around the disclaimer div */
+    border-radius: 5px;        /* Rounded corners */
+    font-size: 14px;           /* Font size of the disclaimer text */
+    line-height: 1.5;          /* Spacing between lines of text */
+}

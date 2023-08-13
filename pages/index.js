@@ -160,8 +160,6 @@ export default function Home() {
     <div className={`container-fluid`}>
       <Head>
         <title>CSC 452/652/752 - Theory of Computation Teaching Assistant</title>
-        <link rel="icon" href="/icon.png" />
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
       </Head>
       <div className={`row justify-content-center`}>
         <div className={`bg-light p-3 sticky-top container-fluid`}>
@@ -187,7 +185,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="d-flex align-items-center justify-content-center">
-                  <button onClick={signInWithGoogle} className={`btn btn-primary`}>Sign in with Google</button>
+                  <button onClick={signInWithGoogle} className={`btn btn-primary`}>Sign in with UNCG account</button>
                 </div>
               )}
             </div>
@@ -231,9 +229,24 @@ export default function Home() {
               </div>
             </main>
           ) : (
-            <div className="text-center mt-5">
-              Disclaimer
-            </div>
+
+<div className="mt-5">  {/* Centered content */}
+    <div className="mb-3">  {/* Margin below the image */}
+        <img src="/TOC_bg.png" alt="Midjourney generated image: a beautiful representation of turing machines in an abstract arts" className="img-fluid" /> 
+    </div>
+    <div className="alert alert-light" role="alert">  
+        <strong>NOTICE:</strong> AI Teaching Assistant for CSC 452/652/752 - Theory of Computation<br />
+        This AI Teaching Assistant tool was specifically developed for the CSC 452/652/752 course at the University of North Carolina at Greensboro (UNCG-Greensboro) by Jeronimo Grandi. Please be advised of the following:<br />
+        <ul className="text-left"> 
+            <li>Data Storage: Messages, login information, and other related data are stored in our database. By using this tool, you consent to such storage practices.</li>
+            <li>Modification Rights: The instructor reserves the right to take the tool offline or make modifications at any time to better suit the needs and requirements of the course.</li>
+            <li>Usage Quota: To ensure the tool's optimal performance and prevent potential misuse, the instructor may impose quota limits on the number of messages sent by each user. Exceeding the quota might result in temporary restrictions or other measures.</li>
+        </ul>
+        Please use this tool responsibly and in accordance with the guidelines set by the course instructor. Your cooperation ensures a productive learning environment for all students.
+    </div>
+</div>
+
+
           )}
         </div>
       </div>
