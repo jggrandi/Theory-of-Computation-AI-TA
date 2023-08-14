@@ -287,7 +287,7 @@ export default function Home() {
 
             <div className="mt-5">
               <div className="mb-3">
-                <img src="/TOC_bg.png" alt="Midjourney generated image: a beautiful representation of turing machines in an abstract arts" className="img-fluid" />
+                <img src="/TOC_bg.jpg" alt="Midjourney generated image: a beautiful representation of turing machines in an abstract arts" className="img-fluid" />
               </div>
               <div className="alert alert-light" role="alert">
                 <strong>NOTICE:</strong> AI Teaching Assistant for CSC 452/652/752 - Theory of Computation<br />
