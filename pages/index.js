@@ -78,29 +78,7 @@ export default function Home() {
     }
 
     const firebaseToken = await getFirebaseToken();
-    // Quota and cooldown checks
-
-    const response = await fetch(`/api/messagesTimestamps?uid=${user.uid}`);
-    if (!response.ok) {
-      console.error('Error fetching last 10 message timestamps:', response.statusText);
-      return;  // Exit the function or handle the error as needed
-    }
-    const data = await response.json();
-    const messageTimestamps = data.timestamps;
-
-    if (messageTimestamps.length >= 10) {
-      const oldestMessageTime = messageTimestamps[0];
-      const currentTime = Date.now();
-      const timeDifference = currentTime - oldestMessageTime;
-      const cooldown = 10 * 60 * 1000; // 10 minutes in milliseconds
-
-      if (timeDifference < cooldown) {
-        const timeRemaining = Math.ceil((cooldown - timeDifference) / (60 * 1000)); // Convert milliseconds to minutes
-        alert(`You have reached your message quota. Please wait ${timeRemaining} minutes before sending another message.`);
-        return;
-      }
-    }
-
+ 
     if (!firebaseToken) {
       alert("Authentication token not found. Please sign in again.");
       return;
@@ -126,6 +104,13 @@ export default function Home() {
         }),
 
       });
+
+      if (serverResponse.status === 429) {
+        const errorData = await serverResponse.json();
+        alert(errorData.error.message);
+        setIsLoading(false);  // Reset the loading state
+        return;
+      }
 
       const data = await serverResponse.json();
 
@@ -212,7 +197,7 @@ export default function Home() {
                 </div>
               )}
               <div className={`fixed-bottom bg-light border-top row align-items-center p-3`}>
- 
+
                 <div className={`container`}>
                   <form onSubmit={onSubmit} className={`d-flex`}>
                     <input

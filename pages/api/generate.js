@@ -1,4 +1,4 @@
-const { verifyToken,database, saveUserMessage} = require('./common');
+const { verifyToken,database, saveUserMessage, checkRateLimit} = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration } = require('./openaiUtils');
 
@@ -62,6 +62,12 @@ export default async function (req, res) {
       }
     });
   }
+
+  const rateLimitError = await checkRateLimit(uid);
+  if (rateLimitError) {
+    return res.status(rateLimitError.status).json(rateLimitError); // Send the error response here
+  }
+  
 
   const studentMessages = req.body.messages || [];
   const lastTenMessages = studentMessages.slice(-10);

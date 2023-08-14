@@ -66,6 +66,27 @@ const getLast10MessageTimestamps = async (uid) => {
   return timestamps.sort((a, b) => a - b);
 };
 
+const checkRateLimit = async (uid) => {
+  const timestamps = await getLast10MessageTimestamps(uid);
+  if (timestamps.length >= 10) {
+    const oldestMessageTime = timestamps[0];
+    const currentTime = Date.now();
+    const timeDifference = currentTime - oldestMessageTime;
+    const cooldown = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+    if (timeDifference < cooldown) {
+      const timeRemaining = Math.ceil((cooldown - timeDifference) / (60 * 1000)); // Convert milliseconds to minutes
+      return {
+        status: 429,
+        error: {
+          message: `You have reached your message quota. Please wait ${timeRemaining} minutes before sending another message.`
+        }
+      };
+    }
+  }
+  return null;  // Return null if no rate limit error
+};
+
 
 module.exports = {
   verifyToken,
@@ -73,4 +94,5 @@ module.exports = {
   saveUserMessage,
   registerUserToDatabase,
   getLast10MessageTimestamps,
+  checkRateLimit,
 };
