@@ -16,10 +16,11 @@ export default function Home() {
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }, 100);  // 100ms delay
     }
   };
-
 
   async function handleSignInWithGoogle() {
     const auth = getAuth();  // Get the authentication instance
