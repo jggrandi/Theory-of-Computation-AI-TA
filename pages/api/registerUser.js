@@ -1,6 +1,6 @@
-const { 
-    verifyToken, 
-    registerUserToDatabase 
+const {
+    verifyToken,
+    registerUserToDatabase
 } = require('./common');
 
 
@@ -28,6 +28,15 @@ export default async function registerUser(req, res) {
     const uid = user.uid;
     const userName = user.name || "Unknown User";
     const userEmail = user.email
+    
+    // Check if email ends with @uncg.edu
+    if (!userEmail.endsWith('@uncg.edu')) {
+        return res.status(403).json({
+            error: {
+                message: "Only @uncg.edu accounts are allowed",
+            }
+        });
+    }
 
     try {
         await registerUserToDatabase(uid, userName, userEmail);

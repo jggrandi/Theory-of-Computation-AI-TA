@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import styles from "./index.module.css";
 import { signInWithGoogle, listenToAuthChanges, signOutUser } from '../firebase/firebase';
+import { GoogleAuthProvider, signInWithPopup, signOut, getAuth } from 'firebase/auth';
 
 export default function Home() {
   const messagesEndRef = useRef(null);
@@ -19,6 +20,35 @@ export default function Home() {
     }
   };
 
+  async function handleSignInWithGoogle() {
+    const auth = getAuth();  // Get the authentication instance
+    const provider = new GoogleAuthProvider();
+
+    // Force account selection every time the user tries to sign in
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    });
+
+    let result;
+
+    try {
+        result = await signInWithPopup(auth, provider);  // Use the auth instance here
+    } catch (error) {
+        console.error("Error during sign-in:", error);
+        return;
+    }
+
+    const email = result?.user?.email;
+
+    if (!email.endsWith('@uncg.edu')) {
+        // Sign out the user immediately
+        signOut(auth);  // Use the auth instance for signing out
+
+        return;
+    }
+
+    // If email is valid, the listenToAuthChanges useEffect will handle the rest.
+}
 
   useEffect(() => {
     scrollToBottom();
@@ -35,11 +65,10 @@ export default function Home() {
     const unsubscribe = listenToAuthChanges(async (authUser) => {
       if (isMounted) {
         if (authUser) {
-          setUser(authUser);
 
           // Register User to database when they log in
           const firebaseToken = await authUser.getIdToken();
-          await fetch("/api/registerUser", {
+          const response = await fetch("/api/registerUser", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -50,6 +79,17 @@ export default function Home() {
               userName: authUser.displayName
             })
           });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+              // If there's an error from the server, sign out the user and show the error message
+              signOutUser();
+              alert(data.error.message);
+              return;
+          }
+
+          setUser(authUser);
           scrollToBottom();
         } else {
           setUser(null);
@@ -174,7 +214,8 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="d-flex align-items-center justify-content-center">
-                  <button onClick={signInWithGoogle} className={`btn btn-primary`}>Sign in with UNCG account</button>
+                  <button onClick={handleSignInWithGoogle} className={`btn btn-primary`}>Sign in with UNCG account</button>
+
                 </div>
               )}
             </div>
