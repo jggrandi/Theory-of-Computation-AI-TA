@@ -178,7 +178,8 @@ export default function Home() {
                 <div className={`d-flex align-items-center justify-content-center  ${styles.userInfoSection}`}>
                   <img
                     src={user.photoURL || '/default-profile-picture.png'}
-                    alt="User Profile"
+                    alt={user.displayName}
+                    title={user.displayName}
                     className={`rounded-circle ${styles.profilePicture}`}
                   />
                   <button onClick={signOutUser} className={`btn btn-danger`}>Sign Out</button>
@@ -191,7 +192,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className={`col-md-10`}>
+        <div className={`container`}>
           {user ? (
             <main>
 
@@ -211,8 +212,8 @@ export default function Home() {
                 </div>
               )}
               <div className={`fixed-bottom bg-light border-top row align-items-center p-3`}>
-                <div className={`col-md-1`}></div>
-                <div className={`col-md-10`}>
+ 
+                <div className={`container`}>
                   <form onSubmit={onSubmit} className={`d-flex`}>
                     <input
                       type="text"
@@ -225,26 +226,26 @@ export default function Home() {
                     <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} className="btn btn-success" />
                   </form>
                 </div>
-                <div className={`col-md-1`}></div>
+
               </div>
             </main>
           ) : (
 
-<div className="mt-5">  {/* Centered content */}
-    <div className="mb-3">  {/* Margin below the image */}
-        <img src="/TOC_bg.png" alt="Midjourney generated image: a beautiful representation of turing machines in an abstract arts" className="img-fluid" /> 
-    </div>
-    <div className="alert alert-light" role="alert">  
-        <strong>NOTICE:</strong> AI Teaching Assistant for CSC 452/652/752 - Theory of Computation<br />
-        This AI Teaching Assistant tool was specifically developed for the CSC 452/652/752 course at the University of North Carolina at Greensboro (UNCG-Greensboro) by Jeronimo Grandi. Please be advised of the following:<br />
-        <ul className="text-left"> 
-            <li>Data Storage: Messages, login information, and other related data are stored in our database. By using this tool, you consent to such storage practices.</li>
-            <li>Modification Rights: The instructor reserves the right to take the tool offline or make modifications at any time to better suit the needs and requirements of the course.</li>
-            <li>Usage Quota: To ensure the tool's optimal performance and prevent potential misuse, the instructor may impose quota limits on the number of messages sent by each user. Exceeding the quota might result in temporary restrictions or other measures.</li>
-        </ul>
-        Please use this tool responsibly and in accordance with the guidelines set by the course instructor. Your cooperation ensures a productive learning environment for all students.
-    </div>
-</div>
+            <div className="mt-5">
+              <div className="mb-3">
+                <img src="/TOC_bg.png" alt="Midjourney generated image: a beautiful representation of turing machines in an abstract arts" className="img-fluid" />
+              </div>
+              <div className="alert alert-light" role="alert">
+                <strong>NOTICE:</strong> AI Teaching Assistant for CSC 452/652/752 - Theory of Computation<br />
+                This AI Teaching Assistant tool was specifically developed for the CSC 452/652/752 course at the University of North Carolina at Greensboro (UNCG-Greensboro) by Jeronimo Grandi. Please be advised of the following:<br />
+                <ul className="text-left">
+                  <li>Data Storage: Messages, login information, and other related data are stored in our database. By using this tool, you consent to such storage practices.</li>
+                  <li>Modification Rights: The instructor reserves the right to take the tool offline or make modifications at any time to better suit the needs and requirements of the course.</li>
+                  <li>Usage Quota: To ensure the tool's optimal performance and prevent potential misuse, the instructor may impose quota limits on the number of messages sent by each user. Exceeding the quota might result in temporary restrictions or other measures.</li>
+                </ul>
+                Please use this tool responsibly and in accordance with the guidelines set by the course instructor. Your cooperation ensures a productive learning environment for all students.
+              </div>
+            </div>
 
 
           )}
