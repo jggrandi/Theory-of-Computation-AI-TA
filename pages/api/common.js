@@ -54,8 +54,10 @@ const registerUserToDatabase = async (uid, userName, userEmail) => {
   await createUserProfileIfNotExist(uid, userName, userEmail);
 };
 
-const getLast10MessageTimestamps = async (uid) => {
-  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(10);
+const MESSAGES_QNT = 8
+
+const getMessagesTimestamps = async (uid) => {
+  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(MESSAGES_QNT);
   const snapshot = await userMessagesRef.once('value');
   
   // Extract the timestamps from the snapshot and return them in ascending order
@@ -66,13 +68,15 @@ const getLast10MessageTimestamps = async (uid) => {
   return timestamps.sort((a, b) => a - b);
 };
 
+const COOLDOWN_TIME = 20 
+
 const checkRateLimit = async (uid) => {
-  const timestamps = await getLast10MessageTimestamps(uid);
-  if (timestamps.length >= 10) {
+  const timestamps = await getMessagesTimestamps(uid);
+  if (timestamps.length >= MESSAGES_QNT) {
     const oldestMessageTime = timestamps[0];
     const currentTime = Date.now();
     const timeDifference = currentTime - oldestMessageTime;
-    const cooldown = 10 * 60 * 1000; // 10 minutes in milliseconds
+    const cooldown = COOLDOWN_TIME * 60 * 1000; // 10 minutes in milliseconds
 
     if (timeDifference < cooldown) {
       const timeRemaining = Math.ceil((cooldown - timeDifference) / (60 * 1000)); // Convert milliseconds to minutes
@@ -93,6 +97,6 @@ module.exports = {
   createUserProfileIfNotExist,
   saveUserMessage,
   registerUserToDatabase,
-  getLast10MessageTimestamps,
+  getLast10MessageTimestamps: getMessagesTimestamps,
   checkRateLimit,
 };

@@ -13,9 +13,12 @@ export default function Home() {
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }, 100);  // 100ms delay
     }
   };
+
 
   useEffect(() => {
     scrollToBottom();
@@ -78,7 +81,7 @@ export default function Home() {
     }
 
     const firebaseToken = await getFirebaseToken();
- 
+
     if (!firebaseToken) {
       alert("Authentication token not found. Please sign in again.");
       return;
@@ -208,7 +211,13 @@ export default function Home() {
                       onChange={(e) => setQuestionInput(e.target.value)}
                       className="form-control mr-2"
                     />
-                    <input type="submit" value={isLoading ? "Processing..." : "Submit"} disabled={isLoading} className="btn btn-success" />
+                    <input
+                      type="submit"
+                      value={isLoading ? "Processing..." : "Submit"}
+                      disabled={isLoading}
+                      className={`btn ${isLoading ? 'btn-warning' : 'btn-success'}`}
+                    />
+
                   </form>
                 </div>
 
