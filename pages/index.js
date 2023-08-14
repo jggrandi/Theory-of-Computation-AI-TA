@@ -11,14 +11,15 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const justLoggedInRef = useRef(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      setTimeout(() => {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }, 100);  // 100ms delay
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
 
   async function handleSignInWithGoogle() {
     const auth = getAuth();  // Get the authentication instance
@@ -26,33 +27,48 @@ export default function Home() {
 
     // Force account selection every time the user tries to sign in
     provider.setCustomParameters({
-        prompt: 'select_account'
+      prompt: 'select_account'
     });
 
     let result;
 
     try {
-        result = await signInWithPopup(auth, provider);  // Use the auth instance here
+      result = await signInWithPopup(auth, provider);  // Use the auth instance here
     } catch (error) {
-        console.error("Error during sign-in:", error);
-        return;
+      console.error("Error during sign-in:", error);
+      return;
     }
 
     const email = result?.user?.email;
 
     if (!email.endsWith('@uncg.edu')) {
-        // Sign out the user immediately
-        signOut(auth);  // Use the auth instance for signing out
-
-        return;
+      // Sign out the user immediately
+      signOut(auth);  // Use the auth instance for signing out
+      return;
     }
 
     // If email is valid, the listenToAuthChanges useEffect will handle the rest.
-}
+  }
 
   useEffect(() => {
-    scrollToBottom();
+    if (justLoggedIn) {
+      scrollToBottom();
+
+      // Reset the state after scrolling
+      setJustLoggedIn(false);
+    }
+  }, [justLoggedIn]);
+
+  useEffect(() => {
+    // Only scroll to bottom if it's not just after login
+    if (!justLoggedInRef.current) {
+      scrollToBottom();
+    }
   }, [messages]);
+
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -83,16 +99,19 @@ export default function Home() {
           const data = await response.json();
 
           if (!response.ok) {
-              // If there's an error from the server, sign out the user and show the error message
-              signOutUser();
-              alert(data.error.message);
-              return;
+            // If there's an error from the server, sign out the user and show the error message
+            signOutUser();
+            alert(data.error.message);
+            return;
           }
 
           setUser(authUser);
-          scrollToBottom();
+          // Set the ref to true when the user logs in
+          setJustLoggedIn(true);
+
         } else {
           setUser(null);
+          scrollToTop();
         }
         setLoadingAuth(false);
       }
