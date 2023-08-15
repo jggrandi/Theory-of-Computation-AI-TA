@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import styles from "./index.module.css";
-import { signInWithGoogle, listenToAuthChanges, signOutUser } from '../firebase/firebase';
+import { listenToAuthChanges, signOutUser } from '../firebase/firebase';
 import { GoogleAuthProvider, signInWithPopup, signOut, getAuth } from 'firebase/auth';
 
 export default function Home() {
@@ -41,10 +41,7 @@ export default function Home() {
       if (error.code === "auth/user-disabled") {
         // Handle the disabled user here
         alert("Your account has been disabled. Please contact Instructor.");
-        return;
       }
-
-      console.error("Error during sign-in:", error);
       return;
     }
 
