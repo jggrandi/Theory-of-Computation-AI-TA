@@ -36,6 +36,14 @@ export default function Home() {
     try {
       result = await signInWithPopup(auth, provider);  // Use the auth instance here
     } catch (error) {
+    
+      console.error("Error during sign-in:", error);
+      if (error.code === "auth/user-disabled") {
+        // Handle the disabled user here
+        alert("Your account has been disabled. Please contact Instructor.");
+        return;
+      }
+
       console.error("Error during sign-in:", error);
       return;
     }
