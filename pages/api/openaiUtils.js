@@ -34,7 +34,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
             // The current user question
             ...lastMessage,
         ],
-        temperature: 0.5,
+        temperature: 0.15,
         max_tokens: 256,
         top_p: 1,
         frequency_penalty: 0,
