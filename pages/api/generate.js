@@ -1,4 +1,4 @@
-const { verifyToken,database, saveUserMessage, checkRateLimit} = require('./common');
+const { verifyToken, saveUserMessage, checkRateLimit} = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration } = require('./openaiUtils');
 

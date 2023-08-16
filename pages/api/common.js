@@ -54,10 +54,11 @@ const registerUserToDatabase = async (uid, userName, userEmail) => {
   await createUserProfileIfNotExist(uid, userName, userEmail);
 };
 
-const MESSAGES_QNT = 8
+
 
 const getMessagesTimestamps = async (uid) => {
-  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(MESSAGES_QNT);
+  const quotaLimit = await fetchQuotaFromFirebase();
+  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(quotaLimit);
   const snapshot = await userMessagesRef.once('value');
   
   // Extract the timestamps from the snapshot and return them in ascending order
@@ -68,15 +69,18 @@ const getMessagesTimestamps = async (uid) => {
   return timestamps.sort((a, b) => a - b);
 };
 
-const COOLDOWN_TIME = 20 
+
 
 const checkRateLimit = async (uid) => {
   const timestamps = await getMessagesTimestamps(uid);
-  if (timestamps.length >= MESSAGES_QNT) {
+  const quotaLimit = await fetchQuotaFromFirebase();
+  const cooldownLimit = await fetchCooldownFromFirebase();
+
+  if (timestamps.length >= quotaLimit) {
     const oldestMessageTime = timestamps[0];
     const currentTime = Date.now();
     const timeDifference = currentTime - oldestMessageTime;
-    const cooldown = COOLDOWN_TIME * 60 * 1000; // 10 minutes in milliseconds
+    const cooldown = cooldownLimit * 60 * 1000; // 10 minutes in milliseconds
 
     if (timeDifference < cooldown) {
       const timeRemaining = Math.ceil((cooldown - timeDifference) / (60 * 1000)); // Convert milliseconds to minutes
@@ -92,11 +96,60 @@ const checkRateLimit = async (uid) => {
 };
 
 
+const remoteConfig = admin.remoteConfig();
+async function fetchKeywordsFromFirebase() {
+  try {
+      const config = await remoteConfig.getTemplate();
+      const keywordsJson = JSON.parse(config.parameters.theory_of_computation_keywords.defaultValue.value);
+      return keywordsJson.keywords;
+  } catch (error) {
+      console.error("Error fetching keywords from Firebase Remote Config:", error);
+      return [];
+  }
+}
+
+const MESSAGES_QNT = 40
+async function fetchQuotaFromFirebase() {
+  try {
+      const config = await remoteConfig.getTemplate();
+      const quotaLimit = parseInt(config.parameters.messages_quota_limit.defaultValue.value, 10);
+      return quotaLimit;
+  } catch (error) {
+      console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
+      return MESSAGES_QNT;
+  }
+}
+
+const COOLDOWN_TIME = 20 
+async function fetchCooldownFromFirebase() {
+  try {
+      const config = await remoteConfig.getTemplate();
+      const cooldownTime = parseInt(config.parameters.cooldown_time.defaultValue.value, 10);
+      return cooldownTime;
+  } catch (error) {
+      console.error("Error fetching cooldownTime from Firebase Remote Config:", error);
+      return COOLDOWN_TIME;
+  }
+}
+
+async function fetchKeywordsRestrictionsFromFirebase() {
+  try {
+      const config = await remoteConfig.getTemplate();
+      const allowKeywordsRestriction = config.parameters.allow_restrictions.defaultValue.value.toLowerCase() === 'true';
+      return allowKeywordsRestriction;
+  } catch (error) {
+      console.error("Error fetching allowKeywordsRestriction from Firebase Remote Config:", error);
+      return false;
+  }
+}
+
 module.exports = {
   verifyToken,
   createUserProfileIfNotExist,
   saveUserMessage,
   registerUserToDatabase,
-  getLast10MessageTimestamps: getMessagesTimestamps,
+  getMessagesTimestamps,
   checkRateLimit,
+  fetchKeywordsFromFirebase,
+  fetchKeywordsRestrictionsFromFirebase,
 };
