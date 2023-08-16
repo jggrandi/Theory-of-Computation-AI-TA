@@ -215,7 +215,7 @@ export default function Home() {
         <title>CSC 452/652/752 - Theory of Computation Teaching Assistant</title>
       </Head>
       <div className={`row justify-content-center`}>
-        <div className={`bg-light p-3 sticky-top container-fluid`}>
+        <div className={`bg-light border-bottom p-3 sticky-top container-fluid`}>
           <div className="row align-items-center">
 
             <div className="col-md-2">
