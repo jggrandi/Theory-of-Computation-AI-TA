@@ -108,7 +108,7 @@ async function fetchKeywordsFromFirebase() {
   }
 }
 
-const MESSAGES_QNT = 40
+const MESSAGES_QNT = 10
 async function fetchQuotaFromFirebase() {
   try {
       const config = await remoteConfig.getTemplate();
