@@ -1,10 +1,6 @@
-const { verifyToken, saveUserMessage, checkRateLimit} = require('./common');
+const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase} = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration } = require('./openaiUtils');
-
-const axios = require('axios');
-const crypto = require('crypto');
-
 
 const CACHE_DURATION_MS = 3600000;  // 1 hour
 
@@ -26,9 +22,16 @@ fetchAndCachePrompt();
 
 
 export default async function (req, res) {
-  // Refresh the cache if the prompt is stale
-  if (!cachedPrompt || Date.now() - lastUpdated > CACHE_DURATION_MS) {
-    await fetchAndCachePrompt();
+  
+  const firebaseMainPrompt = await fetchMainPromptFromFirebase();
+  if (firebaseMainPrompt) {
+    cachedPrompt = firebaseMainPrompt;
+  }
+  else {
+    // Refresh the cache if the prompt is stale
+    if (!cachedPrompt || Date.now() - lastUpdated > CACHE_DURATION_MS) {
+      await fetchAndCachePrompt();
+    }
   }
 
   // Token from client request

@@ -104,7 +104,7 @@ async function fetchKeywordsFromFirebase() {
       return keywordsJson.keywords;
   } catch (error) {
       console.error("Error fetching keywords from Firebase Remote Config:", error);
-      return [];
+      return "";
   }
 }
 
@@ -143,6 +143,21 @@ async function fetchKeywordsRestrictionsFromFirebase() {
   }
 }
 
+
+
+async function fetchMainPromptFromFirebase() {
+  try {
+      const config = await remoteConfig.getTemplate();
+      const mainPrompt = JSON.parse(config.parameters.main_prompt.defaultValue.value);
+      return mainPrompt.content;
+  } catch (error) {
+      console.error("Error fetching mainPrompt from Firebase Remote Config:", error);
+      return "";
+  }
+}
+
+
+
 module.exports = {
   verifyToken,
   createUserProfileIfNotExist,
@@ -152,4 +167,5 @@ module.exports = {
   checkRateLimit,
   fetchKeywordsFromFirebase,
   fetchKeywordsRestrictionsFromFirebase,
+  fetchMainPromptFromFirebase,
 };
