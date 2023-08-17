@@ -96,66 +96,147 @@ const checkRateLimit = async (uid) => {
 };
 
 
+let cacheStore = {
+  keywords: {
+    data: null,
+    lastFetch: null
+  },
+  quota: {
+    data: null,
+    lastFetch: null
+  },
+  cooldown: {
+    data: null,
+    lastFetch: null
+  },
+  keywordRestrictions: {
+    data: null,
+    lastFetch: null
+  },
+  mainPrompt: {
+    data: null,
+    lastFetch: null
+  }
+};
+
+const BASE_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
+
+//To avoid fetching the remote variables at the same time and cause delays in the respose
+function getRandomizedFetchInterval() {
+  const RANDOMIZATION = (Math.random() - 0.5) * 2 * 2 * 60 * 1000; // random value between -15 and +15 minutes in milliseconds
+  return BASE_INTERVAL + RANDOMIZATION;
+}
+
 const remoteConfig = admin.remoteConfig();
+
 async function fetchKeywordsFromFirebase() {
+  const currentTime = Date.now();
+
+  if (cacheStore.keywords.data && (currentTime - cacheStore.keywords.lastFetch < getRandomizedFetchInterval())) {
+    return cacheStore.keywords.data;
+  }
+
   try {
-      const config = await remoteConfig.getTemplate();
-      const keywordsJson = JSON.parse(config.parameters.theory_of_computation_keywords.defaultValue.value);
-      return keywordsJson.keywords;
+    const config = await remoteConfig.getTemplate();
+    const keywordsJson = JSON.parse(config.parameters.theory_of_computation_keywords.defaultValue.value);
+    cacheStore.keywords = {
+      data: keywordsJson.keywords,
+      lastFetch: currentTime
+    };
+    return cacheStore.keywords.data;
   } catch (error) {
-      console.error("Error fetching keywords from Firebase Remote Config:", error);
-      return "";
+    console.error("Error fetching keywords from Firebase Remote Config:", error);
+    return "";
   }
 }
 
 const MESSAGES_QNT = 10
+
 async function fetchQuotaFromFirebase() {
+  const currentTime = Date.now();
+
+  if (cacheStore.quota.data && (currentTime - cacheStore.quota.lastFetch < getRandomizedFetchInterval())) {
+    return cacheStore.quota.data;
+  }
+
   try {
-      const config = await remoteConfig.getTemplate();
-      const quotaLimit = parseInt(config.parameters.messages_quota_limit.defaultValue.value, 10);
-      return quotaLimit;
+    const config = await remoteConfig.getTemplate();
+    const quotaLimit = parseInt(config.parameters.messages_quota_limit.defaultValue.value, 10);
+    cacheStore.quota = {
+      data: quotaLimit,
+      lastFetch: currentTime
+    };
+    return cacheStore.quota.data;
   } catch (error) {
-      console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
-      return MESSAGES_QNT;
+    console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
+    return MESSAGES_QNT;
   }
 }
 
 const COOLDOWN_TIME = 20 
+
 async function fetchCooldownFromFirebase() {
+  const currentTime = Date.now();
+
+  if (cacheStore.cooldown.data && (currentTime - cacheStore.cooldown.lastFetch < getRandomizedFetchInterval())) {
+    return cacheStore.cooldown.data;
+  }
+
   try {
-      const config = await remoteConfig.getTemplate();
-      const cooldownTime = parseInt(config.parameters.cooldown_time.defaultValue.value, 10);
-      return cooldownTime;
+    const config = await remoteConfig.getTemplate();
+    const cooldownTime = parseInt(config.parameters.cooldown_time.defaultValue.value, 10);
+    cacheStore.cooldown = {
+      data: cooldownTime,
+      lastFetch: currentTime
+    };
+    return cacheStore.cooldown.data;
   } catch (error) {
-      console.error("Error fetching cooldownTime from Firebase Remote Config:", error);
-      return COOLDOWN_TIME;
+    console.error("Error fetching cooldownTime from Firebase Remote Config:", error);
+    return COOLDOWN_TIME;
   }
 }
 
 async function fetchKeywordsRestrictionsFromFirebase() {
+  const currentTime = Date.now();
+
+  if (cacheStore.keywordRestrictions.data !== null && (currentTime - cacheStore.keywordRestrictions.lastFetch < getRandomizedFetchInterval())) {
+    return cacheStore.keywordRestrictions.data;
+  }
+
   try {
-      const config = await remoteConfig.getTemplate();
-      const allowKeywordsRestriction = config.parameters.allow_restrictions.defaultValue.value.toLowerCase() === 'true';
-      return allowKeywordsRestriction;
+    const config = await remoteConfig.getTemplate();
+    const allowKeywordsRestriction = config.parameters.allow_restrictions.defaultValue.value.toLowerCase() === 'true';
+    cacheStore.keywordRestrictions = {
+      data: allowKeywordsRestriction,
+      lastFetch: currentTime
+    };
+    return cacheStore.keywordRestrictions.data;
   } catch (error) {
-      console.error("Error fetching allowKeywordsRestriction from Firebase Remote Config:", error);
-      return false;
+    console.error("Error fetching allowKeywordsRestriction from Firebase Remote Config:", error);
+    return false;
   }
 }
-
-
 
 async function fetchMainPromptFromFirebase() {
+  const currentTime = Date.now();
+
+  if (cacheStore.mainPrompt.data && (currentTime - cacheStore.mainPrompt.lastFetch < getRandomizedFetchInterval())) {
+    return cacheStore.mainPrompt.data;
+  }
+
   try {
-      const config = await remoteConfig.getTemplate();
-      const mainPrompt = JSON.parse(config.parameters.main_prompt.defaultValue.value);
-      return mainPrompt.content;
+    const config = await remoteConfig.getTemplate();
+    const mainPrompt = JSON.parse(config.parameters.main_prompt.defaultValue.value);
+    cacheStore.mainPrompt = {
+      data: mainPrompt.content,
+      lastFetch: currentTime
+    };
+    return cacheStore.mainPrompt.data;
   } catch (error) {
-      console.error("Error fetching mainPrompt from Firebase Remote Config:", error);
-      return "";
+    console.error("Error fetching mainPrompt from Firebase Remote Config:", error);
+    return "";
   }
 }
-
 
 
 module.exports = {
