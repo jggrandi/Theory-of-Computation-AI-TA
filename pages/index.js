@@ -1,8 +1,10 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import styles from "./index.module.css";
+import * as markedLib from 'marked';
 import { listenToAuthChanges, signOutUser } from '../firebase/firebase';
 import { GoogleAuthProvider, signInWithPopup, signOut, getAuth } from 'firebase/auth';
+
 
 export default function Home() {
   const messagesEndRef = useRef(null);
@@ -137,6 +139,11 @@ export default function Home() {
     return null;
   }
 
+  function markdownToHtml(markdownText) {
+    return { __html: markedLib.marked(markdownText) };
+}
+
+
   async function onSubmit(event) {
     event.preventDefault();
 
@@ -254,7 +261,11 @@ export default function Home() {
                 <div className={`overflow-auto`}>
                   {messages.map((message, idx) => (
                     <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : 'bg-light'}`}>
-                      {message.content}
+                      {message.role === "user" ? (
+                        message.content
+                      ) : (
+                        <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
+                      )}
                     </div>
                   ))}
                   <div ref={messagesEndRef} />
