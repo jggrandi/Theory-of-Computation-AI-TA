@@ -45,14 +45,14 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
             // The original prompt
             {
                 "role": "system",
-                "content": cachedPrompt
+                "content": cachedPrompt + " Format the answer in markdown and use text highlighting (bold, italics, lists, title, subtitle and etc)."
             },
             // Last 10 messages for context in follow-up questions
             ...lastTenMessagesExcludingLast,
             // Remind the bot of its purpose + The current user question
             {
                 "role": "user",
-                "content": "As a teaching assistant with expertise ONLY in the Theory of Computation, your can only is to provide guidance, hints, and support to help me understand and solve problems ONLY related to theory of computation. You cannot provide me direct answers or do the work for me. If my question is not strictly and directly about the Theory of Computation refuse to answer. You cannot show me any code. Please be brief, only 3 paragraphs max. My question: " + userMessage
+                "content": "(Remember: As a teaching assistant with expertise ONLY in the Theory of Computation, you cannot provide me direct answers or do the work for me. If my question is not strictly about the Theory of Computation, refuse to answer. Please provide guidance or explanations, be brief, only 1-3 paragraphs max.) My question: " + userMessage 
             }
         ],
         temperature: 0.1,
