@@ -1,6 +1,6 @@
-const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase} = require('./common');
+const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase } = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
-const { createChatCompletion, configuration } = require('./openaiUtils');
+const { createChatCompletion, configuration, validateAnswerWithOpenAI, createOpenAIContextualQuestion, } = require('./openaiUtils');
 
 const CACHE_DURATION_MS = 3600000;  // 1 hour
 
@@ -20,9 +20,18 @@ async function fetchAndCachePrompt() {
 // Fetch and cache the prompt immediately upon server startup
 fetchAndCachePrompt();
 
+let challengeQuestionsStore = {};
+
+function storeChallengeQuestionTemporarily(uid, question) {
+    challengeQuestionsStore[uid] = question;
+}
+
+function retrieveStoredChallengeQuestion(uid) {
+    return challengeQuestionsStore[uid] || null;
+}
 
 export default async function (req, res) {
-  
+
   const firebaseMainPrompt = await fetchMainPromptFromFirebase();
   if (firebaseMainPrompt) {
     cachedPrompt = firebaseMainPrompt;
@@ -65,12 +74,36 @@ export default async function (req, res) {
       }
     });
   }
-
+  const { messageType, userAnswer } = req.body;
   const rateLimitError = await checkRateLimit(uid);
   if (rateLimitError) {
-    return res.status(rateLimitError.status).json(rateLimitError); // Send the error response here
+
+    const context = req.body.messages || [];  // Extracting the last three user messages
+    const challengeQuestion = await createOpenAIContextualQuestion(context);
+
+    // Temporarily store the generated question.
+    storeChallengeQuestionTemporarily(uid, challengeQuestion);
+
+    //return res.status(rateLimitError.status).json(rateLimitError); // Send the error response here
+    // Instead of sending a separate response for the challenge, incorporate it into the chat.
+    return res.json({
+      type: 'challenge_response',
+      content: "Challenge Question: " + challengeQuestion
+    });
   }
-  
+
+  console.log(messageType)
+
+  if (messageType === 'challenge_answer') {
+    const storedChallengeQuestion = retrieveStoredChallengeQuestion(uid);
+
+    const responseFromOpenAI = await validateAnswerWithOpenAI(storedChallengeQuestion, userAnswer);
+    console.log(responseFromOpenAI);
+    return res.json({
+        type: 'challenge_response',
+        content: responseFromOpenAI.choices[0].message.content
+    });
+}
 
   const studentMessages = req.body.messages || [];
   const lastTenMessages = studentMessages.slice(-10);

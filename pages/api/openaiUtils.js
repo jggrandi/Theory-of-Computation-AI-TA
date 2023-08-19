@@ -1,6 +1,9 @@
 const { Configuration, OpenAIApi } = require("openai");
 const { fetchKeywordsFromFirebase, fetchKeywordsRestrictionsFromFirebase } = require('./common');
 
+const OPENAI_MODEL = "gpt-3.5-turbo";
+
+
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY
 });
@@ -40,7 +43,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
 
     const lastTenMessagesExcludingLast = studentMessages.slice(studentMessages.length - 11, studentMessages.length - 1);
     const response = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
+        model: OPENAI_MODEL,
         messages: [
             // The original prompt
             {
@@ -76,7 +79,51 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
     return response;
 }
 
+
+async function createOpenAIContextualQuestion(messages) {
+    // Filter out only user messages and take the last three questions
+    const userQuestions = messages.filter(msg => msg.role === "user").slice(-3);
+    const systemPrompt = {
+        role: "system",
+        content: "You are a knowledgeable assistant. Based on the previous user questions, generate a relevant challenge question."
+    };
+
+    const response = await openai.createChatCompletion({
+        model: OPENAI_MODEL,
+        messages: [...userQuestions, systemPrompt]
+    });
+
+    return response.data.choices[0].message.content.trim();
+
+}
+
+async function validateAnswerWithOpenAI(storedQuestion, userAnswer) {
+    const systemPrompt = {
+        role: "system",
+        content: "You are a knowledgeable assistant. Based on the following challenge question, determine if the subsequent answer is correct. Explicity add the word 'Correct' if the answer is correct"
+    };
+
+    const challenge = { role: "user", content: storedQuestion };
+    const userResponse = { role: "user", content: userAnswer };
+    // console.log(challenge + " ---- " + userResponse)
+
+    const response = await openai.createChatCompletion({
+        model: OPENAI_MODEL,
+        messages: [systemPrompt, challenge, userResponse]
+    });
+    
+    const validationResponse = response.data.choices[0].message.content.trim().toLowerCase();
+    
+    // Here, we expect OpenAI to provide a response indicating whether the answer is correct or not.
+    // We can then decide based on keywords or phrases in the response.
+    return validationResponse.includes("correct") || validationResponse.includes("right");
+}
+
+
+
 module.exports = {
     createChatCompletion,
-    configuration
+    configuration,
+    validateAnswerWithOpenAI,
+    createOpenAIContextualQuestion,
 };

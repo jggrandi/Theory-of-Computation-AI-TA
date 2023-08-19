@@ -123,7 +123,7 @@ const BASE_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 //To avoid fetching the remote variables at the same time and cause delays in the respose
 function getRandomizedFetchInterval() {
-  const RANDOMIZATION = (Math.random() - 0.5) * 2 * 2 * 60 * 1000; // random value between -15 and +15 minutes in milliseconds
+  const RANDOMIZATION = (Math.random() - 0.5) * 2 * 2 * 60 * 1000; // random value between -2 and +2 minutes in milliseconds
   return BASE_INTERVAL + RANDOMIZATION;
 }
 
@@ -166,7 +166,8 @@ async function fetchQuotaFromFirebase() {
       data: quotaLimit,
       lastFetch: currentTime
     };
-    return cacheStore.quota.data;
+    // return cacheStore.quota.data;
+    return 1;
   } catch (error) {
     console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
     return MESSAGES_QNT;
