@@ -64,7 +64,7 @@ export default async function (req, res) {
   }
 
   const uid = user.uid;
-  const userName = user.name || "Unknown User";
+  // const userName = user.name || "Unknown User";
 
 
   if (!configuration.apiKey) {
@@ -75,49 +75,49 @@ export default async function (req, res) {
     });
   }
   const { messageType, userAnswer } = req.body;
+
   const rateLimitError = await checkRateLimit(uid);
-  if (rateLimitError) {
-
-    const context = req.body.messages || [];  // Extracting the last three user messages
-    const challengeQuestion = await createOpenAIContextualQuestion(context);
-
-    // Temporarily store the generated question.
-    storeChallengeQuestionTemporarily(uid, challengeQuestion);
-
-    //return res.status(rateLimitError.status).json(rateLimitError); // Send the error response here
-    // Instead of sending a separate response for the challenge, incorporate it into the chat.
-    return res.json({
-      type: 'challenge_response',
-      content: "Challenge Question: " + challengeQuestion
-    });
-  }
-
-  console.log(messageType)
-
+  
+  // If the user has hit the rate limit and they haven't provided an answer to the challenge yet
+  if (rateLimitError && messageType !== 'challenge_answer') {
+  
+      const context = req.body.messages || [];
+      const challengeQuestion = await createOpenAIContextualQuestion(context);
+  
+      // Temporarily store the generated challenge question
+      storeChallengeQuestionTemporarily(uid, challengeQuestion);
+  
+      return res.json({
+          type: 'challenge_question',
+          content: "Challenge Question: " + challengeQuestion
+      });
+  } 
+  
+  // If the message type is a challenge answer
   if (messageType === 'challenge_answer') {
-    const storedChallengeQuestion = retrieveStoredChallengeQuestion(uid);
-
-    const responseFromOpenAI = await validateAnswerWithOpenAI(storedChallengeQuestion, userAnswer);
-    console.log(responseFromOpenAI);
-    return res.json({
-        type: 'challenge_response',
-        content: responseFromOpenAI.choices[0].message.content
-    });
-}
-
+      const storedChallengeQuestion = retrieveStoredChallengeQuestion(uid);
+      const responseFromOpenAI = await validateAnswerWithOpenAI(storedChallengeQuestion, userAnswer);
+      
+      return res.json({
+          type: 'challenge_response',
+          content: responseFromOpenAI.choices[0].message.content
+      });
+  }
   const studentMessages = req.body.messages || [];
   const lastTenMessages = studentMessages.slice(-10);
   const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
-
-  // Validate the length of the student's message
-  if (studentCurrentQuestion.length > 200) {
-    return res.status(400).json({
-      error: {
-        message: "Your message exceeds the 200 character limit.",
-      }
-    });
+  // If the message type is a regular question or not provided (for backward compatibility)
+  if (!messageType || messageType === 'regular_question') {
+   
+    if (studentCurrentQuestion.length > 200) {
+      return res.status(400).json({
+        error: {
+          message: "Your message exceeds the 200 character limit.",
+        }
+      });
+    }
   }
-
+  
   try {
 
     const response = await createChatCompletion(cachedPrompt, studentMessages);

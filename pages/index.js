@@ -15,6 +15,7 @@
     const [loadingAuth, setLoadingAuth] = useState(true);
     const justLoggedInRef = useRef(false);
     const [justLoggedIn, setJustLoggedIn] = useState(false);
+    const [messageType, setMessageType] = useState('regular_question');
 
     const scrollToBottom = () => {
       if (messagesEndRef.current) {
@@ -73,6 +74,7 @@
         scrollToBottom();
       }
     }, [messages]);
+
 
     const scrollToTop = () => {
       window.scrollTo(0, 0);
@@ -170,6 +172,7 @@
             "Authorization": `Bearer ${firebaseToken}` // Attaching the Firebase token here
           },
           body: JSON.stringify({
+            messageType: messageType,
             message: questionInput,
             messages: updatedMessages,
             user: {
@@ -189,6 +192,14 @@
 
         const data = await serverResponse.json();
 
+        if (data.type === 'challenge_question') {
+          setMessageType('challenge_answer');
+        } else {
+          setMessageType('regular_question');
+        }
+      
+      
+        
         if (data.type === 'challenge_response') {
           const updatedMessages = [...messages, { role: "assistant", content: data.content }];
           setMessages(updatedMessages);

@@ -156,7 +156,8 @@ async function fetchQuotaFromFirebase() {
   const currentTime = Date.now();
 
   if (cacheStore.quota.data && (currentTime - cacheStore.quota.lastFetch < getRandomizedFetchInterval())) {
-    return cacheStore.quota.data;
+    // return cacheStore.quota.data;
+    return 1;
   }
 
   try {
