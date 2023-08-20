@@ -38,7 +38,7 @@ export default function Home() {
     try {
       result = await signInWithPopup(auth, provider);  // Use the auth instance here
     } catch (error) {
-    
+
       console.error("Error during sign-in:", error);
       if (error.code === "auth/user-disabled") {
         // Handle the disabled user here
@@ -141,14 +141,24 @@ export default function Home() {
 
   function markdownToHtml(markdownText) {
     return { __html: markedLib.marked(markdownText) };
-}
+  }
 
+  function addSystemMessage(content) {
+    const updatedMessages = [...messages, { role: "system", content }];
+    setMessages(updatedMessages);
+    localStorage.setItem('messages', JSON.stringify(updatedMessages));
+  }
 
   async function onSubmit(event) {
     event.preventDefault();
 
     if (!questionInput.trim()) {
-      alert("Please enter a question before submitting.");
+      addSystemMessage("Please enter a question before submitting.");
+      return;
+    }
+
+    if (questionInput.length > 200) {
+      addSystemMessage("Your message exceeds the 200 character limit.");
       return;
     }
 
@@ -260,8 +270,8 @@ export default function Home() {
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
                   {messages.map((message, idx) => (
-                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : 'bg-light'}`}>
-                      {message.role === "user" ? (
+                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : message.role === "system" ? styles.systemMessage : 'bg-light'}`}>
+                      {message.role !== "assistant" ? (
                         message.content
                       ) : (
                         <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />

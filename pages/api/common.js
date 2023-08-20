@@ -238,6 +238,33 @@ async function fetchMainPromptFromFirebase() {
   }
 }
 
+function validateMessageLength(req, res, next) {
+  const studentCurrentQuestion = req.body.message; // Assuming the message is passed in the body with key 'message'
+
+  if (!studentCurrentQuestion) {
+      return res.status(400).json({
+          error: {
+              message: "Please enter a question before submitting.",
+          }
+      });
+  }
+  const greetingsPattern = /\b(hi|hello|hey|whats up)\b/i;
+  if (studentCurrentQuestion.length < 15 && !greetingsPattern.test(studentCurrentQuestion)) {
+    return res.status(400).json({
+      error: {
+        message: "Your message is too short, try to be more descriptive so I can better help you.",
+      }
+    });
+  }
+
+  if (studentCurrentQuestion.length > 200) {
+      return res.status(400).json({
+          error: {
+              message: "Your message exceeds the 200 character limit.",
+          }
+      });
+  }
+}
 
 module.exports = {
   verifyToken,
@@ -249,4 +276,5 @@ module.exports = {
   fetchKeywordsFromFirebase,
   fetchKeywordsRestrictionsFromFirebase,
   fetchMainPromptFromFirebase,
+  validateMessageLength,
 };

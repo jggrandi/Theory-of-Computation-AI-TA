@@ -48,6 +48,11 @@
     color: #0070f3;
 }
 
+.systemMessage {
+  background-color: #f7f7d7; 
+  font-style: italic;
+}
+
 .loginPageImage {
     width: auto; 
     height: 150px;  /* Adjust this value based on your preference */

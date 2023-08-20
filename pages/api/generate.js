@@ -1,4 +1,4 @@
-const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase} = require('./common');
+const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase, validateMessageLength} = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration } = require('./openaiUtils');
 
@@ -55,8 +55,6 @@ export default async function (req, res) {
   }
 
   const uid = user.uid;
-  const userName = user.name || "Unknown User";
-
 
   if (!configuration.apiKey) {
     return res.status(500).json({
@@ -71,19 +69,12 @@ export default async function (req, res) {
     return res.status(rateLimitError.status).json(rateLimitError); // Send the error response here
   }
   
-
   const studentMessages = req.body.messages || [];
-  const lastTenMessages = studentMessages.slice(-10);
   const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
 
   // Validate the length of the student's message
-  if (studentCurrentQuestion.length > 200) {
-    return res.status(400).json({
-      error: {
-        message: "Your message exceeds the 200 character limit.",
-      }
-    });
-  }
+  const validationResult = validateMessageLength(req, res, () => {});
+  if (validationResult) return validationResult;
 
   try {
 
