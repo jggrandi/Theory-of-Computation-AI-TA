@@ -31,6 +31,7 @@ function retrieveStoredChallengeQuestion(uid) {
 }
 
 export default async function (req, res) {
+  // console.log("Server received messageType:", req.body.messageType);
 
   const firebaseMainPrompt = await fetchMainPromptFromFirebase();
   if (firebaseMainPrompt) {
@@ -74,38 +75,45 @@ export default async function (req, res) {
       }
     });
   }
-  const { messageType, userAnswer } = req.body;
+  const { messageType, message } = req.body;
 
-  const rateLimitError = await checkRateLimit(uid);
-  
-  // If the user has hit the rate limit and they haven't provided an answer to the challenge yet
-  if (rateLimitError && messageType !== 'challenge_answer') {
-  
-      const context = req.body.messages || [];
-      const challengeQuestion = await createOpenAIContextualQuestion(context);
-  
-      // Temporarily store the generated challenge question
-      storeChallengeQuestionTemporarily(uid, challengeQuestion);
-  
-      return res.json({
-          type: 'challenge_question',
-          content: "Challenge Question: " + challengeQuestion
-      });
-  } 
-  
+
   // If the message type is a challenge answer
   if (messageType === 'challenge_answer') {
-      const storedChallengeQuestion = retrieveStoredChallengeQuestion(uid);
-      const responseFromOpenAI = await validateAnswerWithOpenAI(storedChallengeQuestion, userAnswer);
-      
-      return res.json({
-          type: 'challenge_response',
-          content: responseFromOpenAI.choices[0].message.content
-      });
+    const storedChallengeQuestion = retrieveStoredChallengeQuestion(uid);
+    console.log("Question: " + storedChallengeQuestion + "---- Answer: " + message);
+    const responseFromOpenAI = await validateAnswerWithOpenAI(storedChallengeQuestion, message);
+    console.log(responseFromOpenAI)
+    // Here, you might want to reset or adjust the user's rate limit
+    // (Depending on your rate limiting logic)
+
+    return res.json({
+      type: 'challenge_response',
+      content: responseFromOpenAI
+    });
   }
+
+
+  const rateLimitError = await checkRateLimit(uid);
+
+  // If the user has hit the rate limit and they haven't provided an answer to the challenge yet
+  if (rateLimitError) {
+    const context = req.body.messages || [];
+    const challengeQuestion = await createOpenAIContextualQuestion(context);
+
+    // Temporarily store the generated challenge question
+    storeChallengeQuestionTemporarily(uid, challengeQuestion);
+
+    return res.json({
+      type: 'challenge_question',
+      content: "You have reached your messages quota. Correctly answer the following question get back one message.\n Question: " + challengeQuestion
+    });
+  }
+
+
   const studentMessages = req.body.messages || [];
-  const lastTenMessages = studentMessages.slice(-10);
   const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
+
   // If the message type is a regular question or not provided (for backward compatibility)
   if (!messageType || messageType === 'regular_question') {
    

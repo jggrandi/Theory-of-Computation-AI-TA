@@ -81,43 +81,52 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
 
 
 async function createOpenAIContextualQuestion(messages) {
-    // Filter out only user messages and take the last three questions
-    const userQuestions = messages.filter(msg => msg.role === "user").slice(-3);
-    const systemPrompt = {
-        role: "system",
-        content: "You are a knowledgeable assistant. Based on the previous user questions, generate a relevant challenge question."
-    };
+    try {
+        // Filter out only user messages and take the last three questions
+        const userQuestions = messages.filter(msg => msg.role === "user").slice(-3);
+        const systemPrompt = {
+            role: "system",
+            content: "(You are a knowledgeable assistant. Based on the previous user questions, generate a relevant multiple choice question. Write the question in markdown code)"
+        };
 
-    const response = await openai.createChatCompletion({
-        model: OPENAI_MODEL,
-        messages: [...userQuestions, systemPrompt]
-    });
-
-    return response.data.choices[0].message.content.trim();
-
+        const response = await openai.createChatCompletion({
+            model: OPENAI_MODEL,
+            messages: [...userQuestions, systemPrompt]
+        });
+        // console.log("Full OpenAI API response:", response.choices[0].message);
+        return response.data.choices[0].message.content.trim();
+    } catch (error) {
+        console.error("Error in createOpenAIContextualQuestion:", error);
+        throw new Error("Failed to create a contextual question from OpenAI.");
+    }
 }
+
 
 async function validateAnswerWithOpenAI(storedQuestion, userAnswer) {
-    const systemPrompt = {
-        role: "system",
-        content: "You are a knowledgeable assistant. Based on the following challenge question, determine if the subsequent answer is correct. Explicity add the word 'Correct' if the answer is correct"
-    };
+    try {
+        const systemPrompt = {
+            role: "system",
+            content: "(You are a knowledgeable assistant. Based on the following question, determine if the subsequent answer is correct. Answer only 'Good Job!' or 'Wrong' with the correct answer and explanation. Write the answer in markdown code)"
+        };
 
-    const challenge = { role: "user", content: storedQuestion };
-    const userResponse = { role: "user", content: userAnswer };
-    // console.log(challenge + " ---- " + userResponse)
+        const challenge = { role: "assistant", content: storedQuestion };
+        const userResponse = { role: "user", content: userAnswer };
 
-    const response = await openai.createChatCompletion({
-        model: OPENAI_MODEL,
-        messages: [systemPrompt, challenge, userResponse]
-    });
-    
-    const validationResponse = response.data.choices[0].message.content.trim().toLowerCase();
-    
-    // Here, we expect OpenAI to provide a response indicating whether the answer is correct or not.
-    // We can then decide based on keywords or phrases in the response.
-    return validationResponse.includes("correct") || validationResponse.includes("right");
+        const response = await openai.createChatCompletion({
+            model: OPENAI_MODEL,
+            messages: [systemPrompt, challenge, userResponse]
+        });
+        const validationResponse = response.data.choices[0].message.content.trim().toLowerCase();
+        console.log(validationResponse)
+        // Here, we expect OpenAI to provide a response indicating whether the answer is correct or not.
+        // We can then decide based on keywords or phrases in the response.
+        return validationResponse.includes("good job!");
+    } catch (error) {
+        console.error("Error in validateAnswerWithOpenAI:", error);
+        throw new Error("Failed to validate the answer using OpenAI.");
+    }
 }
+
 
 
 

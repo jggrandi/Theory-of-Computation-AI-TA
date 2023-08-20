@@ -157,7 +157,7 @@ async function fetchQuotaFromFirebase() {
 
   if (cacheStore.quota.data && (currentTime - cacheStore.quota.lastFetch < getRandomizedFetchInterval())) {
     // return cacheStore.quota.data;
-    return 1;
+    return 2;
   }
 
   try {
@@ -168,7 +168,7 @@ async function fetchQuotaFromFirebase() {
       lastFetch: currentTime
     };
     // return cacheStore.quota.data;
-    return 1;
+    return 2;
   } catch (error) {
     console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
     return MESSAGES_QNT;
@@ -181,7 +181,8 @@ async function fetchCooldownFromFirebase() {
   const currentTime = Date.now();
 
   if (cacheStore.cooldown.data && (currentTime - cacheStore.cooldown.lastFetch < getRandomizedFetchInterval())) {
-    return cacheStore.cooldown.data;
+    // return cacheStore.cooldown.data;
+    return 1;
   }
 
   try {
@@ -191,7 +192,8 @@ async function fetchCooldownFromFirebase() {
       data: cooldownTime,
       lastFetch: currentTime
     };
-    return cacheStore.cooldown.data;
+    // return cacheStore.cooldown.data;
+    return 1
   } catch (error) {
     console.error("Error fetching cooldownTime from Firebase Remote Config:", error);
     return COOLDOWN_TIME;

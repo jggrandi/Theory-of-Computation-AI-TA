@@ -47,7 +47,10 @@
     background-color: #e6f7ff;
     color: #0070f3;
 }
-
+.challengeQuestion{
+  background-color: #f4e6ff;
+  color: #8600f3;  
+}
 .loginPageImage {
     width: auto; 
     height: 150px;  /* Adjust this value based on your preference */
