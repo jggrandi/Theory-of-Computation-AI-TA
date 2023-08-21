@@ -97,7 +97,7 @@ export default async function (req, res) {
     // Save to Firebase Realtime Database
     await saveUserMessage(uid, studentCurrentQuestion, assistantMessage);
 
-    res.status(200).json({ result: response.data.choices[0].message.content });
+    res.status(200).json({role: "assistant", content: response.data.choices[0].message.content });
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data);

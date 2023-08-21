@@ -156,8 +156,7 @@ async function fetchQuotaFromFirebase() {
   const currentTime = Date.now();
 
   if (cacheStore.quota.data && (currentTime - cacheStore.quota.lastFetch < getRandomizedFetchInterval())) {
-    // return cacheStore.quota.data;
-    return 1
+    return cacheStore.quota.data;
   }
 
   try {
@@ -167,8 +166,7 @@ async function fetchQuotaFromFirebase() {
       data: quotaLimit,
       lastFetch: currentTime
     };
-    // return cacheStore.quota.data;
-    return 1
+    return cacheStore.quota.data;
   } catch (error) {
     console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
     return MESSAGES_QNT;

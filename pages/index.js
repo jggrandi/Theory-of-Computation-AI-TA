@@ -209,7 +209,7 @@ export default function Home() {
       if (serverResponse.status !== 200) {
         throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
-      console.log(data);
+
       addMessage(data);
 
       setQuestionInput("");
