@@ -300,13 +300,9 @@ export default function Home() {
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
                   {messages.map((message, idx) => (
-<<<<<<< HEAD
-                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage: (isChallengeMode ? styles.challengeQuestion : 'bg-light')}`}>
-                      {message.role === "user" ? (
-=======
+
                     <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : message.role === "system" ? styles.systemMessage : 'bg-light'}`}>
-                      {message.role !== "assistant" ? (
->>>>>>> smallfeatures
+                      {message.role === "user" ? (
                         message.content
                       ) : (
                         <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />

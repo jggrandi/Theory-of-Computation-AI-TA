@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase } = require('./common');
-=======
 const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase, validateMessageLength} = require('./common');
->>>>>>> smallfeatures
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration, validateAnswerWithOpenAI, createOpenAIContextualQuestion, } = require('./openaiUtils');
 
