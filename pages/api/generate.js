@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase } = require('./common');
+=======
+const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase, validateMessageLength} = require('./common');
+>>>>>>> smallfeatures
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration, validateAnswerWithOpenAI, createOpenAIContextualQuestion, } = require('./openaiUtils');
 
@@ -65,8 +69,6 @@ export default async function (req, res) {
   }
 
   const uid = user.uid;
-  // const userName = user.name || "Unknown User";
-
 
   if (!configuration.apiKey) {
     return res.status(500).json({
@@ -91,6 +93,31 @@ export default async function (req, res) {
       type: 'challenge_response',
       content: responseFromOpenAI
     });
+
+  // const rateLimitError = await checkRateLimit(uid);
+  // if (rateLimitError) {
+
+  //   res.json({
+  //     role: "system",
+  //     content: rateLimitError.error.message
+  //   });
+  //   return;
+  // }
+  
+  // const studentMessages = req.body.messages || [];
+  // const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
+
+  // // Validate the length of the student's message
+  // const errorMessage = validateMessageLength(req);
+
+  // if (errorMessage) {
+  //     // If there's an error message, append it to the messages list and send the response
+  //     res.json({
+  //         role: "system",
+  //         content: errorMessage
+  //     });
+  //     return;
+  
   }
 
 
@@ -134,7 +161,7 @@ export default async function (req, res) {
     // Save to Firebase Realtime Database
     await saveUserMessage(uid, studentCurrentQuestion, assistantMessage);
 
-    res.status(200).json({ result: response.data.choices[0].message.content });
+    res.status(200).json({role: "assistant", content: response.data.choices[0].message.content });
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data);

@@ -148,6 +148,17 @@ export default function Home() {
     return { __html: markedLib.marked(markdownText) };
   }
 
+  function addMessage(newMessages) {
+    if (!Array.isArray(newMessages)) {
+      newMessages = [newMessages];
+    }
+
+    setMessages(prevMessages => {
+      const updatedMessages = [...prevMessages, ...newMessages];
+      localStorage.setItem('messages', JSON.stringify(updatedMessages));
+      return updatedMessages;
+    });
+  }
 
   async function onSubmit(event) {
     
@@ -155,9 +166,14 @@ export default function Home() {
     event.preventDefault();
 
     if (!questionInput.trim()) {
-      alert("Please enter a question before submitting.");
+      addMessage([{ role: "system", content: "Please enter a question before submitting." }]);
       return;
     }
+
+    if (questionInput.length > 200) {
+      addMessage([{ role: "system", content: "Your message exceeds the 200 character limit." }]);
+      return;
+    } 
 
     const firebaseToken = await getFirebaseToken();
 
@@ -166,7 +182,8 @@ export default function Home() {
       return;
     }
 
-    const updatedMessages = [...messages, { role: "user", content: questionInput }];
+    const messagesContext = [...messages, { role: "user", content: questionInput }];
+    addMessage({ role: "user", content: questionInput })
     setIsLoading(true);
 
     try {
@@ -179,7 +196,7 @@ export default function Home() {
         body: JSON.stringify({
           messageType: messageType,
           message: questionInput,
-          messages: updatedMessages,
+          messages: messagesContext,
           user: {
             displayName: user.displayName,
             uid: user.uid,  // this is the unique user id from Firebase
@@ -217,6 +234,8 @@ export default function Home() {
       if (serverResponse.status !== 200) {
         throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
+
+      addMessage(data);
 
       setQuestionInput("");
       setIsLoading(false);
@@ -281,8 +300,13 @@ export default function Home() {
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
                   {messages.map((message, idx) => (
+<<<<<<< HEAD
                     <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage: (isChallengeMode ? styles.challengeQuestion : 'bg-light')}`}>
                       {message.role === "user" ? (
+=======
+                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : message.role === "system" ? styles.systemMessage : 'bg-light'}`}>
+                      {message.role !== "assistant" ? (
+>>>>>>> smallfeatures
                         message.content
                       ) : (
                         <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
