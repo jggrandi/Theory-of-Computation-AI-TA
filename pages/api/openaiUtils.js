@@ -52,8 +52,13 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
             ...lastTenMessagesExcludingLast,
             // Remind the bot of its purpose + The current user question
             {
+                "role": "system",
+                "content": "(If the following question is NOT strictly related to Theory of Computation, refuse to answer it. Analyze previous messages as well, because the question might be a follow-up question. If the question is related, directly answer it. Don't need to say replay saying that the question is related.). Question: "+ userMessage
+            },
+            {
                 "role": "user",
-                "content": "(Remember: As a teaching assistant with expertise ONLY in the Theory of Computation, you cannot provide me direct answers or do the work for me. Refuse to answer if my question is not strictly about the Theory of Computation, such as related to programming and other general topics. Please provide ONLY guidance or explanations, be brief, only 1-3 paragraphs max.) My question: " + userMessage 
+                "content": "Remember: As a teaching assistant with expertise ONLY in the Theory of Computation, you cannot provide me direct answers or do the work for me. Refuse to answer if my question is not strictly about the Theory of Computation, such as related to programming and other general topics. Please provide ONLY guidance or explanations, be brief, only 1-3 paragraphs max.)"
+
             }
         ],
         temperature: 0.1,
