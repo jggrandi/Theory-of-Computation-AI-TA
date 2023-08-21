@@ -143,24 +143,30 @@ export default function Home() {
     return { __html: markedLib.marked(markdownText) };
   }
 
-  function addSystemMessage(content) {
-    const updatedMessages = [...messages, { role: "system", content }];
-    setMessages(updatedMessages);
-    localStorage.setItem('messages', JSON.stringify(updatedMessages));
+  function addMessage(newMessages) {
+    if (!Array.isArray(newMessages)) {
+      newMessages = [newMessages];
+    }
+
+    setMessages(prevMessages => {
+      const updatedMessages = [...prevMessages, ...newMessages];
+      localStorage.setItem('messages', JSON.stringify(updatedMessages));
+      return updatedMessages;
+    });
   }
 
   async function onSubmit(event) {
     event.preventDefault();
 
     if (!questionInput.trim()) {
-      addSystemMessage("Please enter a question before submitting.");
+      addMessage([{ role: "system", content: "Please enter a question before submitting." }]);
       return;
     }
 
     if (questionInput.length > 200) {
-      addSystemMessage("Your message exceeds the 200 character limit.");
+      addMessage([{ role: "system", content: "Your message exceeds the 200 character limit." }]);
       return;
-    }
+    } 
 
     const firebaseToken = await getFirebaseToken();
 
@@ -169,7 +175,8 @@ export default function Home() {
       return;
     }
 
-    const updatedMessages = [...messages, { role: "user", content: questionInput }];
+    const messagesContext = [...messages, { role: "user", content: questionInput }];
+    addMessage({ role: "user", content: questionInput })
     setIsLoading(true);
 
     try {
@@ -181,7 +188,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           message: questionInput,
-          messages: updatedMessages,
+          messages: messagesContext,
           user: {
             displayName: user.displayName,
             uid: user.uid,  // this is the unique user id from Firebase
@@ -202,11 +209,8 @@ export default function Home() {
       if (serverResponse.status !== 200) {
         throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
-
-      updatedMessages.push({ role: "assistant", content: data.result });
-      setMessages(updatedMessages);
-
-      localStorage.setItem('messages', JSON.stringify(updatedMessages));
+      console.log(data);
+      addMessage(data);
 
       setQuestionInput("");
       setIsLoading(false);

@@ -66,15 +66,28 @@ export default async function (req, res) {
 
   const rateLimitError = await checkRateLimit(uid);
   if (rateLimitError) {
-    return res.status(rateLimitError.status).json(rateLimitError); // Send the error response here
+
+    res.json({
+      role: "system",
+      content: rateLimitError.error.message
+    });
+    return;
   }
   
   const studentMessages = req.body.messages || [];
   const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
 
   // Validate the length of the student's message
-  const validationResult = validateMessageLength(req, res, () => {});
-  if (validationResult) return validationResult;
+  const errorMessage = validateMessageLength(req);
+
+  if (errorMessage) {
+      // If there's an error message, append it to the messages list and send the response
+      res.json({
+          role: "system",
+          content: errorMessage
+      });
+      return;
+  }
 
   try {
 

@@ -156,7 +156,8 @@ async function fetchQuotaFromFirebase() {
   const currentTime = Date.now();
 
   if (cacheStore.quota.data && (currentTime - cacheStore.quota.lastFetch < getRandomizedFetchInterval())) {
-    return cacheStore.quota.data;
+    // return cacheStore.quota.data;
+    return 1
   }
 
   try {
@@ -166,7 +167,8 @@ async function fetchQuotaFromFirebase() {
       data: quotaLimit,
       lastFetch: currentTime
     };
-    return cacheStore.quota.data;
+    // return cacheStore.quota.data;
+    return 1
   } catch (error) {
     console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
     return MESSAGES_QNT;
@@ -238,33 +240,25 @@ async function fetchMainPromptFromFirebase() {
   }
 }
 
-function validateMessageLength(req, res, next) {
-  const studentCurrentQuestion = req.body.message; // Assuming the message is passed in the body with key 'message'
+function validateMessageLength(req) {
+  const studentCurrentQuestion = req.body.message;
 
   if (!studentCurrentQuestion) {
-      return res.status(400).json({
-          error: {
-              message: "Please enter a question before submitting.",
-          }
-      });
+      return "Please enter a question before submitting.";
   }
-  const greetingsPattern = /\b(hi|hello|hey|whats up)\b/i;
-  if (studentCurrentQuestion.length < 15 && !greetingsPattern.test(studentCurrentQuestion)) {
-    return res.status(400).json({
-      error: {
-        message: "Your message is too short, try to be more descriptive so I can better help you.",
-      }
-    });
+  
+  const greetingsPattern = /\b(hi|hello|hey)\b/i;
+  if (studentCurrentQuestion.length < 5 && !greetingsPattern.test(studentCurrentQuestion)) {
+    return "Your message is too short, try to be more descriptive so I can better help you.";
   }
 
   if (studentCurrentQuestion.length > 200) {
-      return res.status(400).json({
-          error: {
-              message: "Your message exceeds the 200 character limit.",
-          }
-      });
+      return "Your message exceeds the 200 character limit.";
   }
+
+  return null;
 }
+
 
 module.exports = {
   verifyToken,
