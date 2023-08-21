@@ -68,3 +68,22 @@
     font-size: 14px;           /* Font size of the disclaimer text */
     line-height: 1.5;          /* Spacing between lines of text */
 }
+
+.highlightMessage {
+  transition: background-color 2s ease-out;
+}
+
+@keyframes dotPulse {
+  0% { content: "."; }
+  25% { content: ".."; }
+  50% { content: "..."; }
+  75% { content: "...."; }
+  100% { content: "....."; }
+}
+
+.animatedDots::after {
+  content: "";
+  display: inline-block;
+  animation: dotPulse 1s infinite;
+}
+

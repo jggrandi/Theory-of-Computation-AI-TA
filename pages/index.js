@@ -147,13 +147,19 @@ export default function Home() {
     if (!Array.isArray(newMessages)) {
       newMessages = [newMessages];
     }
-
+  
     setMessages(prevMessages => {
+      // If adding a placeholder message, remove any existing placeholder first
+      if (newMessages.some(msg => msg.isPlaceholder)) {
+        prevMessages = prevMessages.filter(msg => !msg.isPlaceholder);
+      }
+  
       const updatedMessages = [...prevMessages, ...newMessages];
       localStorage.setItem('messages', JSON.stringify(updatedMessages));
       return updatedMessages;
     });
   }
+  
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -176,8 +182,16 @@ export default function Home() {
     }
 
     const messagesContext = [...messages, { role: "user", content: questionInput }];
+    const sanitizedMessages = messagesContext.map(({ role, content }) => ({ role, content }));
     addMessage({ role: "user", content: questionInput })
     setIsLoading(true);
+
+    const placeholderMessage = {
+      role: "system",
+      content: "", // Empty since the content is now handled by the JSX logic
+      isPlaceholder: true
+    };
+    addMessage(placeholderMessage);
 
     try {
       const serverResponse = await fetch("/api/generate", {
@@ -188,7 +202,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           message: questionInput,
-          messages: messagesContext,
+          messages: sanitizedMessages,
           user: {
             displayName: user.displayName,
             uid: user.uid,  // this is the unique user id from Firebase
@@ -210,6 +224,10 @@ export default function Home() {
         throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
 
+      // Remove the placeholder message before adding the server response
+      setMessages(prevMessages => prevMessages.filter(msg => !msg.isPlaceholder));
+      
+      data.highlight = true;
       addMessage(data);
 
       setQuestionInput("");
@@ -273,15 +291,40 @@ export default function Home() {
 
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
-                  {messages.map((message, idx) => (
-                    <div key={idx} className={`p-3 mb-2 rounded ${message.role === "user" ? styles.userMessage : message.role === "system" ? styles.systemMessage : 'bg-light'}`}>
-                      {message.role !== "assistant" ? (
-                        message.content
-                      ) : (
-                        <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
-                      )}
-                    </div>
-                  ))}
+                  {messages.map((message, idx) => {
+
+                    let baseClasses = "p-3 mb-2 rounded";
+
+                    let roleClass;
+                    switch (message.role) {
+                      case "user":
+                        roleClass = styles.userMessage;
+                        break;
+                      case "system":
+                        roleClass = styles.systemMessage;
+                        break;
+                      default:
+                        roleClass = 'bg-light';
+                    }
+
+                    let highlightClass = message.highlight ? styles.highlightMessage : '';
+
+                    let finalClass = `${baseClasses} ${roleClass} ${highlightClass}`;
+
+                    return (
+                      <div key={idx} className={finalClass}>
+                        {message.isPlaceholder ? (
+                          <span>
+                            <span className={styles.animatedDots}></span>
+                          </span>
+                        ) : message.role !== "assistant" ? (
+                          message.content
+                        ) : (
+                          <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
+                        )}
+                      </div>
+                    );
+                  })}
                   <div ref={messagesEndRef} />
                 </div>
               </div>
@@ -301,6 +344,7 @@ export default function Home() {
                       value={questionInput}
                       onChange={(e) => setQuestionInput(e.target.value)}
                       className="form-control mr-2"
+                      disabled={isLoading}
                     />
                     <input
                       type="submit"
