@@ -73,7 +73,17 @@ export default function Home() {
       scrollToBottom();
     }
   }, [messages]);
-
+  
+  useEffect(() => {
+    if (messages.length === 0) {
+      // Add a greeting message if the messages array is empty
+      addMessage({
+        role: "assistant",
+        content: "Hello! How can I assist you with Theory of Computation today?"
+      });
+    }
+  }, [messages]);
+  
   const scrollToTop = () => {
     window.scrollTo(0, 0);
   };
@@ -211,12 +221,12 @@ export default function Home() {
 
       });
 
-      if (serverResponse.status === 429) {
-        const errorData = await serverResponse.json();
-        alert(errorData.error.message);
-        setIsLoading(false);  // Reset the loading state
-        return;
-      }
+      // if (serverResponse.status === 429) {
+      //   const errorData = await serverResponse.json();
+      //   alert(errorData.error.message);
+      //   setIsLoading(false);  // Reset the loading state
+      //   return;
+      // }
 
       const data = await serverResponse.json();
 
@@ -285,7 +295,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className={`container`}>
+        <div className={`container pt-2`}>
           {user ? (
             <main>
 
