@@ -267,12 +267,12 @@ export default function Home() {
         <div className={`bg-light border-bottom p-3 sticky-top container-fluid`}>
           <div className="row align-items-center">
 
-            <div className="col-md-2">
-              {/* Possibly some content here or just leave it empty */}
+            <div className="col-md-2 d-none d-md-block">
+              <a href="https://github.com/jggrandi/Theory-of-Computation-AI-TA/issues" target="_blank" rel="noopener noreferrer" className="btn btn-warning">Report Bug</a>
             </div>
 
             <div className={`col-md-8 text-center ${styles.header}`}>
-              <h1> CSC 452/652/752 - Theory of Computation Teaching Assistant</h1>
+              <h1> Theory of Computation AI Teaching Assistant</h1>
             </div>
 
             <div className="col-md-2 align-items-center"> {/* Right block */}
