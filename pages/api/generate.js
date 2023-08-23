@@ -69,7 +69,8 @@ export default async function (req, res) {
 
     res.json({
       role: "system",
-      content: rateLimitError.error.message
+      content: rateLimitError.error.message,
+      isSystemAlert: true
     });
     return;
   }

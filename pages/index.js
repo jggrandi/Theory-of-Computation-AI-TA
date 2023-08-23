@@ -163,6 +163,9 @@ export default function Home() {
       if (newMessages.some(msg => msg.isPlaceholder)) {
         prevMessages = prevMessages.filter(msg => !msg.isPlaceholder);
       }
+      if (newMessages.some(msg => msg.isSystemAlert)) {
+        prevMessages = prevMessages.filter(msg => !msg.isSystemAlert);
+      }
   
       const updatedMessages = [...prevMessages, ...newMessages];
       localStorage.setItem('messages', JSON.stringify(updatedMessages));
@@ -175,12 +178,12 @@ export default function Home() {
     event.preventDefault();
 
     if (!questionInput.trim()) {
-      addMessage([{ role: "system", content: "Please enter a question before submitting." }]);
+      addMessage([{ role: "system", content: "Please enter a question before submitting.", isSystemAlert: true }]);
       return;
     }
 
     if (questionInput.length > 200) {
-      addMessage([{ role: "system", content: "Your message exceeds the 200 character limit." }]);
+      addMessage([{ role: "system", content: "Your message exceeds the 200 character limit.", isSystemAlert: true }]);
       return;
     } 
 
@@ -201,6 +204,7 @@ export default function Home() {
       content: "", // Empty since the content is now handled by the JSX logic
       isPlaceholder: true
     };
+    setMessages(prevMessages => prevMessages.filter(msg => !msg.isSystemAlert));
     addMessage(placeholderMessage);
 
     try {
@@ -233,9 +237,10 @@ export default function Home() {
       if (serverResponse.status !== 200) {
         throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
-
+      console.log(data)
       // Remove the placeholder message before adding the server response
       setMessages(prevMessages => prevMessages.filter(msg => !msg.isPlaceholder));
+      
       
       data.highlight = true;
       addMessage(data);
