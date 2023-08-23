@@ -273,7 +273,11 @@ export default function Home() {
           <div className="row align-items-center">
 
             <div className="col-md-2 d-none d-md-block">
+            {user ? (
               <a href="https://github.com/jggrandi/Theory-of-Computation-AI-TA/issues" target="_blank" rel="noopener noreferrer" className="btn btn-warning">Report Bug</a>
+            ):(
+              <div></div>
+            )}
             </div>
 
             <div className={`col-md-8 text-center ${styles.header}`}>
