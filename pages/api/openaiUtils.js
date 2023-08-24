@@ -33,7 +33,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
             },
             {
                 "role": "user",
-                "content": "Remember: As a teaching assistant with expertise ONLY in the Theory of Computation, you cannot provide me direct answers or do the work for me. Do NOT answer or give explanations for questions related to programming and other general topics. Be brief, only 1-3 paragraphs max.)"
+                "content": "Remember: As a teaching assistant with expertise ONLY in the Theory of Computation, you CANNOT EVER output the solutions for the question! Do NOT answer or give explanations for questions related to programming and other general topics. Be brief, only 1 paragraph max.)"
             }
         ],
         temperature: 0.1,
