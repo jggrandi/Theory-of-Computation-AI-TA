@@ -24,7 +24,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
                 "role": "system",
                 "content": cachedPrompt + " Format the answer in markdown and use text highlighting (bold, italics, lists, title, subtitle and etc)."
             },
-            // Last 10 messages for context in follow-up questions
+            // Last x messages for context in follow-up questions
             ...lastMessagesExcludingLast,
             // Remind the bot of its purpose + The current user question
             {
@@ -37,7 +37,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
             }
         ],
         temperature: 0.1,
-        max_tokens: 300,
+        max_tokens: 250,
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0
