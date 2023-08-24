@@ -129,27 +129,6 @@ function getRandomizedFetchInterval() {
 
 const remoteConfig = admin.remoteConfig();
 
-async function fetchKeywordsFromFirebase() {
-  const currentTime = Date.now();
-
-  if (cacheStore.keywords.data && (currentTime - cacheStore.keywords.lastFetch < getRandomizedFetchInterval())) {
-    return cacheStore.keywords.data;
-  }
-
-  try {
-    const config = await remoteConfig.getTemplate();
-    const keywordsJson = JSON.parse(config.parameters.theory_of_computation_keywords.defaultValue.value);
-    cacheStore.keywords = {
-      data: keywordsJson.keywords,
-      lastFetch: currentTime
-    };
-    return cacheStore.keywords.data;
-  } catch (error) {
-    console.error("Error fetching keywords from Firebase Remote Config:", error);
-    return "";
-  }
-}
-
 const MESSAGES_QNT = 10
 
 async function fetchQuotaFromFirebase() {
@@ -193,27 +172,6 @@ async function fetchCooldownFromFirebase() {
   } catch (error) {
     console.error("Error fetching cooldownTime from Firebase Remote Config:", error);
     return COOLDOWN_TIME;
-  }
-}
-
-async function fetchKeywordsRestrictionsFromFirebase() {
-  const currentTime = Date.now();
-
-  if (cacheStore.keywordRestrictions.data !== null && (currentTime - cacheStore.keywordRestrictions.lastFetch < getRandomizedFetchInterval())) {
-    return cacheStore.keywordRestrictions.data;
-  }
-
-  try {
-    const config = await remoteConfig.getTemplate();
-    const allowKeywordsRestriction = config.parameters.allow_restrictions.defaultValue.value.toLowerCase() === 'true';
-    cacheStore.keywordRestrictions = {
-      data: allowKeywordsRestriction,
-      lastFetch: currentTime
-    };
-    return cacheStore.keywordRestrictions.data;
-  } catch (error) {
-    console.error("Error fetching allowKeywordsRestriction from Firebase Remote Config:", error);
-    return false;
   }
 }
 
@@ -265,8 +223,6 @@ module.exports = {
   registerUserToDatabase,
   getMessagesTimestamps,
   checkRateLimit,
-  fetchKeywordsFromFirebase,
-  fetchKeywordsRestrictionsFromFirebase,
   fetchMainPromptFromFirebase,
   validateMessageLength,
 };

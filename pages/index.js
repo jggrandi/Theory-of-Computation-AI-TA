@@ -237,11 +237,9 @@ export default function Home() {
       if (serverResponse.status !== 200) {
         throw data.error || new Error(`Request failed with status ${serverResponse.status}`);
       }
-      console.log(data)
       // Remove the placeholder message before adding the server response
       setMessages(prevMessages => prevMessages.filter(msg => !msg.isPlaceholder));
-      
-      
+            
       data.highlight = true;
       addMessage(data);
 
