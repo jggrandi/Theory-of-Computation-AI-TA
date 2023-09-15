@@ -215,6 +215,21 @@ function validateMessageLength(req) {
   return null;
 }
 
+async function getMessagesForUser(uid) {
+  const userMessagesRef = database.ref(`users/${uid}/messages`);
+  const snapshot = await userMessagesRef.once('value');
+  const messages = [];
+  
+  snapshot.forEach(childSnapshot => {
+    messages.push({
+      userMessage: childSnapshot.val().userMessage,
+      assistantMessage: childSnapshot.val().assistantMessage,
+      timestamp: childSnapshot.val().timestamp
+    });
+  });
+  return messages;
+}
+
 
 module.exports = {
   verifyToken,
@@ -225,4 +240,5 @@ module.exports = {
   checkRateLimit,
   fetchMainPromptFromFirebase,
   validateMessageLength,
+  getMessagesForUser,
 };

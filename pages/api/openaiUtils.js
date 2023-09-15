@@ -12,9 +12,19 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
 
     // Extract the user's last message
     const userMessage = studentMessages[studentMessages.length - 1].content;
+    
+    // TODO: FIX this, it is not currently working with the timestamps
+    const TIME_THRESHOLD = 60 * 60 * 1000; // 1 hour in milliseconds
+    const recentMessages = studentMessages.filter(message => {
+        const timeDiff = Date.now() - message.timestamp;
+        return timeDiff <= TIME_THRESHOLD;
+    });
+    console.log(recentMessages);
+    ////
 
-    const messagesWithoutSystem = studentMessages.filter(message => message.role !== "system");
+    const messagesWithoutSystem = recentMessages.filter(message => message.role !== "system");
     const lastMessagesExcludingLast = messagesWithoutSystem.slice(-6, -1);
+
     
     const response = await openai.createChatCompletion({
         model: "gpt-4",

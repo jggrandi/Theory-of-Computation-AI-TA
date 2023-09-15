@@ -74,6 +74,33 @@ export default function Home() {
     }
   }, [messages]);
   
+  async function fetchUserMessages(firebaseToken) {
+    const msgResponse = await fetch("/api/getUserMessages", {
+        headers: {
+            "Authorization": `Bearer ${firebaseToken}`
+        }
+    });
+
+    const msgData = await msgResponse.json();
+
+    if (msgResponse.ok && Array.isArray(msgData.messages)) {
+        return msgData.messages.map(msg => {
+            const userMessage = {
+                role: "user",
+                content: msg.userMessage
+            };
+            const assistantMessage = {
+                role: "assistant",
+                content: msg.assistantMessage
+            };
+            return [userMessage, assistantMessage];
+        }).flat();
+    } else {
+        console.error("Error fetching user messages or unexpected data structure:", msgData);
+        return [];
+    }
+  }
+
   useEffect(() => {
     if (messages.length === 0) {
       // Add a greeting message if the messages array is empty
@@ -91,15 +118,9 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true;
 
-    const loadedMessages = JSON.parse(localStorage.getItem('messages')) || [];
-    if (isMounted) {
-      setMessages(loadedMessages);
-    }
-
     const unsubscribe = listenToAuthChanges(async (authUser) => {
       if (isMounted) {
         if (authUser) {
-
           // Register User to database when they log in
           const firebaseToken = await authUser.getIdToken();
           const response = await fetch("/api/registerUser", {
@@ -123,6 +144,9 @@ export default function Home() {
             return;
           }
 
+          const userMessages = await fetchUserMessages(firebaseToken);
+          setMessages(userMessages);
+
           setUser(authUser);
           // Set the ref to true when the user logs in
           setJustLoggedIn(true);
@@ -135,12 +159,13 @@ export default function Home() {
       }
     });
 
-
     return () => {
       isMounted = false;
-      unsubscribe(); // Cleanup listener on unmount
+      unsubscribe();
     };
+
   }, []);
+
 
   async function getFirebaseToken() {
     if (user) {
@@ -148,6 +173,7 @@ export default function Home() {
     }
     return null;
   }
+
 
   function markdownToHtml(markdownText) {
     return { __html: markedLib.marked(markdownText) };
@@ -157,7 +183,7 @@ export default function Home() {
     if (!Array.isArray(newMessages)) {
       newMessages = [newMessages];
     }
-  
+
     setMessages(prevMessages => {
       // If adding a placeholder message, remove any existing placeholder first
       if (newMessages.some(msg => msg.isPlaceholder)) {
@@ -166,13 +192,14 @@ export default function Home() {
       if (newMessages.some(msg => msg.isSystemAlert)) {
         prevMessages = prevMessages.filter(msg => !msg.isSystemAlert);
       }
-  
-      const updatedMessages = [...prevMessages, ...newMessages];
-      localStorage.setItem('messages', JSON.stringify(updatedMessages));
-      return updatedMessages;
+
+      return [...prevMessages, ...newMessages];
     });
   }
   
+  useEffect(() => {
+    localStorage.setItem('messages', JSON.stringify(messages));
+  }, [messages]);
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -193,6 +220,7 @@ export default function Home() {
       alert("Authentication token not found. Please sign in again.");
       return;
     }
+
 
     const messagesContext = [...messages, { role: "user", content: questionInput }];
     const sanitizedMessages = messagesContext.map(({ role, content }) => ({ role, content }));
