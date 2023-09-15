@@ -17,7 +17,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
     const lastMessagesExcludingLast = messagesWithoutSystem.slice(-6, -1);
     
     const response = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4",
         messages: [
             // The original prompt
             {
