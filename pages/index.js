@@ -82,19 +82,9 @@ export default function Home() {
     });
 
     const msgData = await msgResponse.json();
-
+  
     if (msgResponse.ok && Array.isArray(msgData.messages)) {
-        return msgData.messages.map(msg => {
-            const userMessage = {
-                role: "user",
-                content: msg.userMessage
-            };
-            const assistantMessage = {
-                role: "assistant",
-                content: msg.assistantMessage
-            };
-            return [userMessage, assistantMessage];
-        }).flat();
+        return msgData.messages;
     } else {
         console.error("Error fetching user messages or unexpected data structure:", msgData);
         return [];

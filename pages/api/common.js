@@ -215,20 +215,19 @@ function validateMessageLength(req) {
   return null;
 }
 
-async function getMessagesForUser(uid) {
-  const userMessagesRef = database.ref(`users/${uid}/messages`);
+const getMessagesForUser = async (uid) => {
+  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(10);
   const snapshot = await userMessagesRef.once('value');
-  const messages = [];
   
+  const messages = [];
   snapshot.forEach(childSnapshot => {
-    messages.push({
-      userMessage: childSnapshot.val().userMessage,
-      assistantMessage: childSnapshot.val().assistantMessage,
-      timestamp: childSnapshot.val().timestamp
-    });
+    messages.push(childSnapshot.val());
   });
+  // Since we fetched the latest messages, they will be in descending order by timestamp.
+  // If you want them in ascending order, reverse the array.
   return messages;
-}
+};
+
 
 
 module.exports = {

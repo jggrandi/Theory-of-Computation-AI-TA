@@ -24,9 +24,23 @@ export default async function (req, res) {
   const uid = user.uid;
 
   try {
-    const messages = await getMessagesForUser(uid);
-    console.log(messages)
-    res.status(200).json({ messages: messages });
+    const lastTimestamp = req.query.lastTimestamp || null;
+    const messages = await getMessagesForUser(uid, lastTimestamp);
+
+    // Transform the messages
+    const transformedMessages = messages.map(msg => {
+      const userMessage = {
+          role: "user",
+          content: msg.userMessage,
+      };
+      const assistantMessage = {
+          role: "assistant",
+          content: msg.assistantMessage,
+      };
+      return [userMessage, assistantMessage];
+    }).flat();
+
+    res.status(200).json({ messages: transformedMessages });
   } catch (error) {
     console.error("Error fetching messages for user:", error);
     res.status(500).json({
@@ -35,5 +49,4 @@ export default async function (req, res) {
       }
     });
   }
-  
 }
