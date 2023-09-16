@@ -5,29 +5,29 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-async function createChatCompletion(cachedPrompt, studentMessages) {
+async function createChatCompletion(cachedPrompt, gptModel, studentMessages) {
     if (!cachedPrompt) {
         throw new Error("Cached prompt is not yet available.");
     }
 
     // Extract the user's last message
-    const userMessage = studentMessages[studentMessages.length - 1].content;
+    const userMessageContent = studentMessages[studentMessages.length - 1].content;
     
-    // TODO: FIX this, it is not currently working with the timestamps
-    const TIME_THRESHOLD = 60 * 60 * 1000; // 1 hour in milliseconds
-    const recentMessages = studentMessages.filter(message => {
-        const timeDiff = Date.now() - message.timestamp;
-        return timeDiff <= TIME_THRESHOLD;
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+  
+    const recentMessages = studentMessages.filter(msg => {
+        if (msg.timestamp) {
+            return msg.timestamp > tenMinutesAgo;
+        }
+        return false;
     });
-    console.log(recentMessages);
-    ////
-
-    const messagesWithoutSystem = recentMessages.filter(message => message.role !== "system");
+    
+    const sanitizedMessages = studentMessages.map(({ role, content }) => ({ role, content }));
+    const messagesWithoutSystem = sanitizedMessages.filter(message => message.role !== "system");
     const lastMessagesExcludingLast = messagesWithoutSystem.slice(-6, -1);
 
-    
     const response = await openai.createChatCompletion({
-        model: "gpt-4",
+        model: gptModel,
         messages: [
             // The original prompt
             {
@@ -39,7 +39,7 @@ async function createChatCompletion(cachedPrompt, studentMessages) {
             // Remind the bot of its purpose + The current user question
             {
                 "role": "system",
-                "content": "(If the following question is NOT strictly related to Theory of Computation, refuse to answer it. Analyze previous messages as well, because the question might be a follow-up question. If the question is related, directly answer it. Don't need to say replay saying that the question is related.). Question: "+ userMessage
+                "content": "(If the following question is NOT strictly related to Theory of Computation, refuse to answer it. Analyze previous messages as well, because the question might be a follow-up question. If the question is related, directly answer it. Don't need to say replay saying that the question is related.). Question: "+ userMessageContent
             },
             {
                 "role": "user",

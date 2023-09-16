@@ -213,7 +213,7 @@ export default function Home() {
 
 
     const messagesContext = [...messages, { role: "user", content: questionInput }];
-    const sanitizedMessages = messagesContext.map(({ role, content }) => ({ role, content }));
+    //const sanitizedMessages = messagesContext.map(({ role, content }) => ({ role, content }));
     addMessage({ role: "user", content: questionInput })
     setIsLoading(true);
 
@@ -230,19 +230,18 @@ export default function Home() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${firebaseToken}` // Attaching the Firebase token here
+          "Authorization": `Bearer ${firebaseToken}`
         },
         body: JSON.stringify({
           message: questionInput,
-          messages: sanitizedMessages,
+          messages: messagesContext,
           user: {
             displayName: user.displayName,
-            uid: user.uid,  // this is the unique user id from Firebase
+            uid: user.uid,
           }
         }),
-
       });
-
+      
       // if (serverResponse.status === 429) {
       //   const errorData = await serverResponse.json();
       //   alert(errorData.error.message);
@@ -271,10 +270,27 @@ export default function Home() {
     }
   }
 
-  function clearChat() {
+  async function clearChat() {
+    const firebaseToken = await getFirebaseToken();
+    const response = await fetch('/api/clearChat', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${firebaseToken}`
+      }
+    });
+  
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error.message);
+      return;
+    }
+  
+    // Now, clear the chat messages on the client side
     setMessages([]);
     localStorage.removeItem('messages');
   }
+  
+
 
   if (loadingAuth) return <div>Loading...</div>;
 
@@ -326,40 +342,37 @@ export default function Home() {
 
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
-                  {messages.map((message, idx) => {
+                {messages.map((message, idx) => {
+                  let baseClasses = "p-3 mb-2 rounded";
 
-                    let baseClasses = "p-3 mb-2 rounded";
+                  let roleClass;
+                  switch (message.role) {
+                    case "user":
+                      roleClass = styles.userMessage;
+                      break;
+                    case "system":
+                      roleClass = styles.systemMessage;
+                      break;
+                    default:
+                      roleClass = 'bg-light';
+                  }
 
-                    let roleClass;
-                    switch (message.role) {
-                      case "user":
-                        roleClass = styles.userMessage;
-                        break;
-                      case "system":
-                        roleClass = styles.systemMessage;
-                        break;
-                      default:
-                        roleClass = 'bg-light';
-                    }
+                  let highlightClass = message.highlight ? styles.highlightMessage : '';
+                  let finalClass = `${baseClasses} ${roleClass} ${highlightClass}`;
 
-                    let highlightClass = message.highlight ? styles.highlightMessage : '';
+                  return (
+                    <div key={idx} className={finalClass}>
+                      {message.isPlaceholder ? (
+                        <span>
+                          <span className={styles.animatedDots}></span>
+                        </span>
+                      ) : (
+                        <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
+                      )}
+                    </div>
+                  );
+                })}
 
-                    let finalClass = `${baseClasses} ${roleClass} ${highlightClass}`;
-
-                    return (
-                      <div key={idx} className={finalClass}>
-                        {message.isPlaceholder ? (
-                          <span>
-                            <span className={styles.animatedDots}></span>
-                          </span>
-                        ) : message.role !== "assistant" ? (
-                          message.content
-                        ) : (
-                          <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
-                        )}
-                      </div>
-                    );
-                  })}
                   <div ref={messagesEndRef} />
                 </div>
               </div>

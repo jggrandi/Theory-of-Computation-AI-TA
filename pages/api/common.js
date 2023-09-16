@@ -41,14 +41,16 @@ const createUserProfileIfNotExist = async (uid, userName, userEmail) => {
   }
 };
 
-const saveUserMessage = async (uid, studentCurrentQuestion, assistantMessage) => {
-  const userMessagesRef = database.ref(`users/${uid}/messages`).push();
-  await userMessagesRef.set({
-    userMessage: studentCurrentQuestion,
-    assistantMessage: assistantMessage,
+const saveMessage = async (uid, role, content) => {
+  const messagesRef = database.ref(`users/${uid}/messages`).push();
+  await messagesRef.set({
+    role: role,
+    content: content,
     timestamp: Date.now()
   });
 };
+
+
 
 const registerUserToDatabase = async (uid, userName, userEmail) => {
   await createUserProfileIfNotExist(uid, userName, userEmail);
@@ -97,10 +99,6 @@ const checkRateLimit = async (uid) => {
 
 
 let cacheStore = {
-  keywords: {
-    data: null,
-    lastFetch: null
-  },
   quota: {
     data: null,
     lastFetch: null
@@ -109,11 +107,11 @@ let cacheStore = {
     data: null,
     lastFetch: null
   },
-  keywordRestrictions: {
+  mainPrompt: {
     data: null,
     lastFetch: null
   },
-  mainPrompt: {
+  gptModel:{
     data: null,
     lastFetch: null
   }
@@ -135,7 +133,7 @@ async function fetchQuotaFromFirebase() {
   const currentTime = Date.now();
 
   if (cacheStore.quota.data && (currentTime - cacheStore.quota.lastFetch < getRandomizedFetchInterval())) {
-    return cacheStore.quota.data;
+    return 100;
   }
 
   try {
@@ -145,7 +143,7 @@ async function fetchQuotaFromFirebase() {
       data: quotaLimit,
       lastFetch: currentTime
     };
-    return cacheStore.quota.data;
+    return 100;
   } catch (error) {
     console.error("Error fetching quotaLimit from Firebase Remote Config:", error);
     return MESSAGES_QNT;
@@ -196,6 +194,32 @@ async function fetchMainPromptFromFirebase() {
   }
 }
 
+const DEFAULT_GPT_MODEL = "gpt-3.5-turbo"
+
+async function fetchGPTModelFromFirebase() {
+  const currentTime = Date.now();
+
+  if (cacheStore.gptModel.data && (currentTime - cacheStore.gptModel.lastFetch < getRandomizedFetchInterval())) {    
+    return cacheStore.gptModel.data;
+  }
+
+  try {
+    const config = await remoteConfig.getTemplate();
+    const gptModel = config.parameters.gpt_model.defaultValue.value;
+
+    cacheStore.gptModel = {
+      data: gptModel,
+      lastFetch: currentTime
+    };
+    return cacheStore.gptModel.data;
+  } catch (error) {
+    console.error("Error fetching gptModel from Firebase Remote Config:", error);
+    return DEFAULT_GPT_MODEL;
+  }
+}
+
+
+
 function validateMessageLength(req) {
   const studentCurrentQuestion = req.body.message;
 
@@ -215,17 +239,38 @@ function validateMessageLength(req) {
   return null;
 }
 
+const updateLastClearedTimestamp = async (uid, timestamp) => {
+  const userRef = database.ref(`users/${uid}`);
+  await userRef.update({
+    lastClearedTimestamp: timestamp
+  });
+};
+
+const getLastClearedTimestamp = async (uid) => {
+  const userRef = database.ref(`users/${uid}`);
+  const snapshot = await userRef.once('value');
+
+  return snapshot.val().lastClearedTimestamp || null;
+};
+
 const getMessagesForUser = async (uid) => {
-  const userMessagesRef = database.ref(`users/${uid}/messages`).orderByChild('timestamp').limitToLast(10);
-  const snapshot = await userMessagesRef.once('value');
+  const lastClearedTimestamp = await getLastClearedTimestamp(uid) || 0;
+  let messagesRef = database.ref(`users/${uid}/messages`)
+    .orderByChild('timestamp')
+    .startAt(lastClearedTimestamp)
+    .limitToLast(20);  // Fetching 20 to account for both user and assistant messages
+
+  const snapshot = await messagesRef.once('value');
   
   const messages = [];
   snapshot.forEach(childSnapshot => {
     messages.push(childSnapshot.val());
   });
-  // Since we fetched the latest messages, they will be in descending order by timestamp.
-  // If you want them in ascending order, reverse the array.
-  return messages;
+
+  // Sort the messages based on timestamp
+  messages.sort((a, b) => a.timestamp - b.timestamp);
+
+  return messages;  // Already in chronological order
 };
 
 
@@ -233,11 +278,13 @@ const getMessagesForUser = async (uid) => {
 module.exports = {
   verifyToken,
   createUserProfileIfNotExist,
-  saveUserMessage,
+  saveMessage,
   registerUserToDatabase,
   getMessagesTimestamps,
   checkRateLimit,
   fetchMainPromptFromFirebase,
+  fetchGPTModelFromFirebase,
   validateMessageLength,
   getMessagesForUser,
+  updateLastClearedTimestamp,
 };

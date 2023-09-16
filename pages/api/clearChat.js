@@ -1,7 +1,7 @@
-const { verifyToken, getMessagesForUser } = require('./common');
+
+const { verifyToken, updateLastClearedTimestamp } = require('./common');
 
 export default async function (req, res) {
-  // Token from client request
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -21,16 +21,17 @@ export default async function (req, res) {
     });
   }
 
-  const uid = user.uid;
-
   try {
-    const lastTimestamp = req.query.lastTimestamp || null;
-    const messages = await getMessagesForUser(uid, lastTimestamp);
+    const uid = user.uid;
+    const currentTimestamp = Date.now();
 
-    // Since the new structure already has individual messages, we can just send them directly
-    res.status(200).json({ messages: messages });
+    // Update the user's lastClearedTimestamp in the database
+    await updateLastClearedTimestamp(uid, currentTimestamp);
+
+    res.status(200).json({ message: "Chat cleared successfully." });
+
   } catch (error) {
-    console.error("Error fetching messages for user:", error);
+    console.error("Error clearing chat:", error);
     res.status(500).json({
       error: {
         message: `Internal server error: ${error.message}`,

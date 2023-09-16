@@ -1,4 +1,4 @@
-const { verifyToken, saveUserMessage, checkRateLimit, fetchMainPromptFromFirebase, validateMessageLength} = require('./common');
+const { verifyToken, saveMessage, checkRateLimit, fetchMainPromptFromFirebase, fetchGPTModelFromFirebase, validateMessageLength} = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration } = require('./openaiUtils');
 
@@ -6,6 +6,7 @@ const CACHE_DURATION_MS = 3600000;  // 1 hour
 
 let cachedPrompt = null;
 let lastUpdated = null;
+let cachedGPTModel = null;
 
 async function fetchAndCachePrompt() {
   try {
@@ -33,6 +34,8 @@ export default async function (req, res) {
       await fetchAndCachePrompt();
     }
   }
+
+  const firebaseGPTModel = await fetchGPTModelFromFirebase();
 
   // Token from client request
   const token = req.headers.authorization?.split(" ")[1];
@@ -92,11 +95,15 @@ export default async function (req, res) {
 
   try {
 
-    const response = await createChatCompletion(cachedPrompt, studentMessages);
+    // Save user's message to Firebase Realtime Database
+    await saveMessage(uid, "user", studentCurrentQuestion);
+    
+    
+    const response = await createChatCompletion(cachedPrompt, firebaseGPTModel, studentMessages);
     const assistantMessage = response.data.choices[0].message.content;
 
-    // Save to Firebase Realtime Database
-    await saveUserMessage(uid, studentCurrentQuestion, assistantMessage);
+     // Save assistant's response to Firebase Realtime Database
+     await saveMessage(uid, "assistant", assistantMessage);
 
     res.status(200).json({role: "assistant", content: response.data.choices[0].message.content });
   } catch (error) {
