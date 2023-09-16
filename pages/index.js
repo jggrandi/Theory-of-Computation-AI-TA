@@ -15,6 +15,7 @@ export default function Home() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const justLoggedInRef = useRef(false);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -154,6 +155,14 @@ export default function Home() {
       unsubscribe();
     };
 
+  }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(intervalId); // Clear the interval when the component is unmounted
   }, []);
 
 
@@ -342,36 +351,41 @@ export default function Home() {
 
               <div className="d-flex flex-column pb-5 mb-5">
                 <div className={`overflow-auto`}>
-                {messages.map((message, idx) => {
-                  let baseClasses = "p-3 mb-2 rounded";
+                  {messages.map((message, idx) => {
+                    const tenMinutesAgo = currentTime - 10 * 60 * 1000;
+                    let isOldMessage = message.timestamp && message.timestamp < tenMinutesAgo;
 
-                  let roleClass;
-                  switch (message.role) {
-                    case "user":
-                      roleClass = styles.userMessage;
-                      break;
-                    case "system":
-                      roleClass = styles.systemMessage;
-                      break;
-                    default:
-                      roleClass = 'bg-light';
-                  }
+                    let baseClasses = "p-3 mb-2 rounded";
 
-                  let highlightClass = message.highlight ? styles.highlightMessage : '';
-                  let finalClass = `${baseClasses} ${roleClass} ${highlightClass}`;
+                    let roleClass;
+                    switch (message.role) {
+                      case "user":
+                        roleClass = styles.userMessage;
+                        break;
+                      case "system":
+                        roleClass = styles.systemMessage;
+                        break;
+                      default:
+                        roleClass = 'bg-light';
+                    }
 
-                  return (
-                    <div key={idx} className={finalClass}>
-                      {message.isPlaceholder ? (
-                        <span>
-                          <span className={styles.animatedDots}></span>
-                        </span>
-                      ) : (
-                        <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
-                      )}
-                    </div>
-                  );
-                })}
+                    let highlightClass = message.highlight ? styles.highlightMessage : '';
+                    let oldMessageClass = isOldMessage ? styles.oldMessage : '';
+
+                    let finalClass = `${baseClasses} ${roleClass} ${highlightClass} ${oldMessageClass}`;
+
+                    return (
+                      <div key={idx} className={finalClass}>
+                        {message.isPlaceholder ? (
+                          <span>
+                            <span className={styles.animatedDots}></span>
+                          </span>
+                        ) : (
+                          <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
+                        )}
+                      </div>
+                    );
+                  })}
 
                   <div ref={messagesEndRef} />
                 </div>

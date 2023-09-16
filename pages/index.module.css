@@ -87,3 +87,6 @@
   animation: dotPulse 1s infinite;
 }
 
+.oldMessage {
+  color: grey;
+}
