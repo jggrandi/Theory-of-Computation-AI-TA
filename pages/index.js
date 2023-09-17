@@ -183,6 +183,18 @@ export default function Home() {
       newMessages = [newMessages];
     }
 
+    const currentTimestamp = Date.now();
+
+    // This timestamp is just for visualization and feedback. The correct timestamp is added in the backend for every message.
+    // This avoids the need to fetch timestamps in the server and user manipulation of timestamps.
+    // Might not be the best solution and might be confusing, but works for now.
+    newMessages = newMessages.map(msg => {
+      if (!msg.timestamp) {
+        msg.timestamp = currentTimestamp;
+      }
+      return msg;
+    });
+    
     setMessages(prevMessages => {
       // If adding a placeholder message, remove any existing placeholder first
       if (newMessages.some(msg => msg.isPlaceholder)) {
@@ -194,7 +206,7 @@ export default function Home() {
 
       return [...prevMessages, ...newMessages];
     });
-  }
+}
   
   useEffect(() => {
     localStorage.setItem('messages', JSON.stringify(messages));
@@ -221,9 +233,11 @@ export default function Home() {
     }
 
 
-    const messagesContext = [...messages, { role: "user", content: questionInput }];
+    //const messagesContext = [...messages, { role: "user", content: questionInput }];
     //const sanitizedMessages = messagesContext.map(({ role, content }) => ({ role, content }));
-    addMessage({ role: "user", content: questionInput })
+    const userQuestion = { role: "user", content: questionInput }
+
+    addMessage(userQuestion)
     setIsLoading(true);
 
     const placeholderMessage = {
@@ -242,8 +256,7 @@ export default function Home() {
           "Authorization": `Bearer ${firebaseToken}`
         },
         body: JSON.stringify({
-          message: questionInput,
-          messages: messagesContext,
+          userQuestion: userQuestion,
           user: {
             displayName: user.displayName,
             uid: user.uid,
@@ -376,6 +389,7 @@ export default function Home() {
 
                     return (
                       <div key={idx} className={finalClass}>
+                        <div>Timestamp: {message.timestamp}</div>
                         {message.isPlaceholder ? (
                           <span>
                             <span className={styles.animatedDots}></span>

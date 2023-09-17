@@ -5,24 +5,24 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-async function createChatCompletion(cachedPrompt, gptModel, studentMessages) {
+async function createChatCompletion(cachedPrompt, gptModel, allMessages) {
     if (!cachedPrompt) {
         throw new Error("Cached prompt is not yet available.");
     }
 
     // Extract the user's last message
-    const userMessageContent = studentMessages[studentMessages.length - 1].content;
+    const userMessageContent = allMessages[allMessages.length - 1].content;
     
-    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+    // const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
   
-    const recentMessages = studentMessages.filter(msg => {
-        if (msg.timestamp) {
-            return msg.timestamp > tenMinutesAgo;
-        }
-        return false;
-    });
-    
-    const sanitizedMessages = studentMessages.map(({ role, content }) => ({ role, content }));
+    // const recentMessages = allMessages.filter(msg => {
+    //     if (msg.timestamp) {
+    //         return msg.timestamp > tenMinutesAgo;
+    //     }
+    //     return false;
+    // });
+    console.log(allMessages);
+    const sanitizedMessages = allMessages.map(({ role, content }) => ({ role, content }));
     const messagesWithoutSystem = sanitizedMessages.filter(message => message.role !== "system");
     const lastMessagesExcludingLast = messagesWithoutSystem.slice(-6, -1);
 
@@ -52,7 +52,7 @@ async function createChatCompletion(cachedPrompt, gptModel, studentMessages) {
         frequency_penalty: 0,
         presence_penalty: 0
     });
-
+    response.data.timestamp = Date.now();
     return response;
 }
 

@@ -1,4 +1,4 @@
-const { verifyToken, getMessagesForUser } = require('./common');
+const { verifyToken, getStoredMessages } = require('./common');
 
 export default async function (req, res) {
   // Token from client request
@@ -25,7 +25,9 @@ export default async function (req, res) {
 
   try {
     const lastTimestamp = req.query.lastTimestamp || null;
-    const messages = await getMessagesForUser(uid, lastTimestamp);
+    const messages = await getStoredMessages({uid:uid});
+
+    //console.log(messages);
 
     // Since the new structure already has individual messages, we can just send them directly
     res.status(200).json({ messages: messages });

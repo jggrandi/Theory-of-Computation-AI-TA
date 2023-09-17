@@ -1,4 +1,4 @@
-const { verifyToken, saveMessage, checkRateLimit, fetchMainPromptFromFirebase, fetchGPTModelFromFirebase, validateMessageLength} = require('./common');
+const { verifyToken, saveMessage, checkRateLimit, fetchMainPromptFromFirebase, fetchGPTModelFromFirebase, validateMessageLength, getStoredMessages} = require('./common');
 const { getDecryptedPrompt } = require('./encryptionUtils');
 const { createChatCompletion, configuration } = require('./openaiUtils');
 
@@ -6,7 +6,6 @@ const CACHE_DURATION_MS = 3600000;  // 1 hour
 
 let cachedPrompt = null;
 let lastUpdated = null;
-let cachedGPTModel = null;
 
 async function fetchAndCachePrompt() {
   try {
@@ -78,11 +77,11 @@ export default async function (req, res) {
     return;
   }
   
-  const studentMessages = req.body.messages || [];
-  const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1].content : '';
-
+  const userQuestion = req.body.userQuestion || [];
+  //const studentCurrentQuestion = studentMessages.length ? studentMessages[studentMessages.length - 1] : '';
+  
   // Validate the length of the student's message
-  const errorMessage = validateMessageLength(req);
+  const errorMessage = validateMessageLength(userQuestion.content);
 
   if (errorMessage) {
       // If there's an error message, append it to the messages list and send the response
@@ -96,14 +95,15 @@ export default async function (req, res) {
   try {
 
     // Save user's message to Firebase Realtime Database
-    await saveMessage(uid, "user", studentCurrentQuestion);
+    await saveMessage(uid, userQuestion.role, userQuestion.content);
     
-    
-    const response = await createChatCompletion(cachedPrompt, firebaseGPTModel, studentMessages);
-    const assistantMessage = response.data.choices[0].message.content;
+    const serverMessages = await getStoredMessages({uid:uid, minutes:10});
 
-     // Save assistant's response to Firebase Realtime Database
-     await saveMessage(uid, "assistant", assistantMessage);
+    const response = await createChatCompletion(cachedPrompt, firebaseGPTModel, serverMessages);
+    const assistantMessage = response.data.choices[0].message;
+
+    // Save assistant's response to Firebase Realtime Database
+    await saveMessage(uid, "assistant", assistantMessage.content);
 
     res.status(200).json({role: "assistant", content: response.data.choices[0].message.content });
   } catch (error) {

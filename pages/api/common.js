@@ -51,7 +51,6 @@ const saveMessage = async (uid, role, content) => {
 };
 
 
-
 const registerUserToDatabase = async (uid, userName, userEmail) => {
   await createUserProfileIfNotExist(uid, userName, userEmail);
 };
@@ -220,8 +219,8 @@ async function fetchGPTModelFromFirebase() {
 
 
 
-function validateMessageLength(req) {
-  const studentCurrentQuestion = req.body.message;
+function validateMessageLength(studentCurrentQuestion) {
+  //const studentCurrentQuestion = req.body.message;
 
   if (!studentCurrentQuestion) {
       return "Please enter a question before submitting.";
@@ -253,12 +252,20 @@ const getLastClearedTimestamp = async (uid) => {
   return snapshot.val().lastClearedTimestamp || null;
 };
 
-const getMessagesForUser = async (uid) => {
+const getStoredMessages = async ({ uid, limitToLast = 20, minutes = null }) => {
+  const currentTime = Date.now();
   const lastClearedTimestamp = await getLastClearedTimestamp(uid) || 0;
-  let messagesRef = database.ref(`users/${uid}/messages`)
+  let startingTimestamp = lastClearedTimestamp;
+
+  // If minutes is specified, compute the timestamp from x minutes ago
+  if (minutes !== null) {
+    startingTimestamp = Math.max(currentTime - minutes * 60 * 1000, lastClearedTimestamp);
+  }
+
+  const messagesRef = database.ref(`users/${uid}/messages`)
     .orderByChild('timestamp')
-    .startAt(lastClearedTimestamp)
-    .limitToLast(20);  // Fetching 20 to account for both user and assistant messages
+    .startAt(startingTimestamp)
+    .limitToLast(limitToLast);
 
   const snapshot = await messagesRef.once('value');
   
@@ -267,11 +274,10 @@ const getMessagesForUser = async (uid) => {
     messages.push(childSnapshot.val());
   });
 
-  // Sort the messages based on timestamp
-  messages.sort((a, b) => a.timestamp - b.timestamp);
-
-  return messages;  // Already in chronological order
+  // Since the messages are ordered by timestamp, they should already be in chronological order
+  return messages;
 };
+
 
 
 
@@ -285,6 +291,6 @@ module.exports = {
   fetchMainPromptFromFirebase,
   fetchGPTModelFromFirebase,
   validateMessageLength,
-  getMessagesForUser,
+  getStoredMessages,
   updateLastClearedTimestamp,
 };
