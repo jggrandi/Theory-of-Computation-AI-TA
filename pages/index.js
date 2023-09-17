@@ -178,6 +178,11 @@ export default function Home() {
     return { __html: markedLib.marked(markdownText) };
   }
 
+  function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  }
+
   function addMessage(newMessages) {
     if (!Array.isArray(newMessages)) {
       newMessages = [newMessages];
@@ -379,7 +384,7 @@ export default function Home() {
                         roleClass = styles.systemMessage;
                         break;
                       default:
-                        roleClass = 'bg-light';
+                        roleClass = styles.agentAnswer;
                     }
 
                     let highlightClass = message.highlight ? styles.highlightMessage : '';
@@ -389,15 +394,18 @@ export default function Home() {
 
                     return (
                       <div key={idx} className={finalClass}>
-                        <div>Timestamp: {message.timestamp}</div>
                         {message.isPlaceholder ? (
                           <span>
                             <span className={styles.animatedDots}></span>
                           </span>
                         ) : (
-                          <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
+                          <>
+                            <div dangerouslySetInnerHTML={markdownToHtml(message.content)} />
+                            <div className={styles.timestamp}>{formatDate(message.timestamp)}</div>
+                          </>
                         )}
                       </div>
+
                     );
                   })}
 

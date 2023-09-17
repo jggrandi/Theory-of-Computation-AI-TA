@@ -46,11 +46,18 @@
 .userMessage{
     background-color: #e6f7ff;
     color: #0070f3;
+    position: relative;
 }
 
 .systemMessage {
   background-color: #f7f7d7; 
   font-style: italic;
+  position: relative;
+}
+
+.agentAnswer {
+  background-color: #f7f7f7; 
+  position: relative;
 }
 
 .loginPageImage {
@@ -89,4 +96,24 @@
 
 .oldMessage {
   color: grey;
+}
+.userMessage.oldMessage {
+  background-color: rgba(230, 247, 255, 0.5);
+}
+
+.systemMessage.oldMessage {
+  background-color: rgba(247, 247, 215, 0.5);
+}
+
+.agentAnswer.oldMessage {
+  background-color: rgba(247, 247, 247, 0.5);
+}
+
+
+.timestamp {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  font-size: 0.8em;
+  color: #888888c4;
 }
