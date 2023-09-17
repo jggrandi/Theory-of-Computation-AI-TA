@@ -93,14 +93,18 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (messages.length === 0) {
-      // Add a greeting message if the messages array is empty
+    const tenMinutesAgo = currentTime - 10 * 60 * 1000;
+    const allMessagesExpired = messages.every(message => message.timestamp && message.timestamp < tenMinutesAgo);
+
+    if (user && (messages.length === 0 || allMessagesExpired)) {
+      // Add a greeting message
       addMessage({
         role: "assistant",
         content: "Hello! How can I assist you with Theory of Computation today?"
       });
     }
-  }, [messages]);
+}, [messages, user, currentTime]);
+
   
   const scrollToTop = () => {
     window.scrollTo(0, 0);
