@@ -93,17 +93,31 @@ export default function Home() {
   }
 
   useEffect(() => {
+    const greetingMessageContent = "Hello! How can I assist you with Theory of Computation today?";
     const tenMinutesAgo = currentTime - 10 * 60 * 1000;
     const allMessagesExpired = messages.every(message => message.timestamp && message.timestamp < tenMinutesAgo);
-
+  
     if (user && (messages.length === 0 || allMessagesExpired)) {
-      // Add a greeting message
-      addMessage({
-        role: "assistant",
-        content: "Hello! How can I assist you with Theory of Computation today?"
-      });
+      // Check if the last message is the greeting message
+      const lastMessageIndex = messages.length - 1;
+      if (messages[lastMessageIndex] && messages[lastMessageIndex].content === greetingMessageContent) {
+        // Update the timestamp of the greeting message
+        setMessages(prevMessages => {
+          const updatedMessages = [...prevMessages];
+          updatedMessages[lastMessageIndex].timestamp = Date.now();
+          return updatedMessages;
+        });
+      } else {
+        // Add a new greeting message
+        addMessage({
+          role: "assistant",
+          content: greetingMessageContent
+        });
+      }
     }
-}, [messages, user, currentTime]);
+  }, [messages, user, currentTime]);
+  
+  
 
   
   const scrollToTop = () => {
