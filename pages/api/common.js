@@ -116,11 +116,11 @@ let cacheStore = {
   }
 };
 
-const BASE_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
+const BASE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 //To avoid fetching the remote variables at the same time and cause delays in the respose
 function getRandomizedFetchInterval() {
-  const RANDOMIZATION = (Math.random() - 0.5) * 2 * 2 * 60 * 1000; // random value between -15 and +15 minutes in milliseconds
+  const RANDOMIZATION = (Math.random() - 0.5) * 2 * 2 * 5 * 1000; // random value between -5 and +5 minutes in milliseconds
   return BASE_INTERVAL + RANDOMIZATION;
 }
 
