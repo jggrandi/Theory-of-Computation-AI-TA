@@ -93,7 +93,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const greetingMessageContent = "Hello! How can I assist you with Theory of Computation today?";
+    const greetingMessageContent = "Hello! How can I assist you with Theory of Computation today? \n \n New Update: Get ready for the final exam by asking about the topics that will be covered!";
     const tenMinutesAgo = currentTime - 10 * 60 * 1000;
     const allMessagesExpired = messages.every(message => message.timestamp && message.timestamp < tenMinutesAgo);
   

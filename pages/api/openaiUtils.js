@@ -21,7 +21,8 @@ async function createChatCompletion(cachedPrompt, gptModel, allMessages) {
     //     }
     //     return false;
     // });
-    console.log(allMessages);
+    // console.log(allMessages);
+
     const sanitizedMessages = allMessages.map(({ role, content }) => ({ role, content }));
     const messagesWithoutSystem = sanitizedMessages.filter(message => message.role !== "system");
     const lastMessagesExcludingLast = messagesWithoutSystem.slice(-6, -1);
@@ -37,20 +38,27 @@ async function createChatCompletion(cachedPrompt, gptModel, allMessages) {
             // Last x messages for context in follow-up questions
             ...lastMessagesExcludingLast,
             // Remind the bot of its purpose + The current user question
-            {
-                "role": "system",
-                "content": "(If the following question is NOT strictly related to Theory of Computation, refuse to answer it. Analyze previous messages as well, because the question might be a follow-up question. If the question is related, directly answer it. Don't need to say replay saying that the question is related.). Question: "+ userMessageContent
-            },
+            // {
+            //     "role": "system",
+            //     "content": "(If the following question is NOT strictly related to Theory of Computation, refuse to answer it. Analyze previous messages as well, because the question might be a follow-up question. If the question is related, directly answer it. Don't need to say replay saying that the question is related)" 
+            // },
             {
                 "role": "user",
+                "content": userMessageContent
+            },
+            {
+                "role": "system",
                 "content": "Remember: As a teaching assistant with expertise ONLY in the Theory of Computation, you CANNOT EVER output the solutions for the question! Do NOT answer or give explanations for questions related to programming and other general topics. Be brief, only 1 paragraph max.)"
             }
         ],
         temperature: 0.1,
-        max_tokens: 250,
+        max_tokens: 500,
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0
+
+    }).catch(error => {
+        console.error("Error calling OpenAI API:", error);
     });
     response.data.timestamp = Date.now();
     return response;
